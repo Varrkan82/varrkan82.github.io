@@ -3,18 +3,18 @@ name: Resources
 on:
   schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '*/5 * * * *'
+    - cron:  '*/10 * * * *'
 jobs:
-    resources:
-        name: Update resources
-        runs-on: ubuntu-latest
-        steps:
-            - name: Fetch resources
-              run: wget https://pastebin.com/raw/Qkm6WFtZ -O online.js
+  resources:
+    name: Update resources
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch resources
+        run: wget https://pastebin.com/raw/Qkm6WFtZ -O online.js
 
-            - name: Update resources
-              uses: test-room-7/action-update-file@v1
-              with:
-                  file-path: online.js
-                  commit-msg: Update resources
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update resources
+        uses: test-room-7/action-update-file@v1
+        with:
+            file-path: online.js
+            commit-msg: Update resources
+            github-token: ${{ secrets.GITHUB_TOKEN }}
