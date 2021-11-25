@@ -1,5 +1,5 @@
 name: Resources
-on: repository_dispatch
+on: workflow_dispatch
 jobs:
     resources:
         name: Update resources
