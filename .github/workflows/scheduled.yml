@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch resources
-        run: wget ${PLUGIN_URL} -O online.js
+        run: wget ${{ secrets.PLUGIN_URL }} -O online.js
 
       - name: Update resources
         uses: test-room-7/action-update-file@v1
