@@ -1,16 +1,16 @@
 name: Update on schedule
-# on: workflow_dispatch
-on:
-  schedule:
+on: workflow_dispatch
+#on:
+#  schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '33 */1 * * *'
+#    - cron:  '33 */1 * * *'
 jobs:
   resources:
     name: Update resources
     runs-on: ubuntu-latest
     steps:
       - name: Fetch resources
-        run: wget https://pastebin.com/raw/Qkm6WFtZ -O online.js
+        run: wget ${PLUGIN_URL} -O online.js
 
       - name: Update resources
         uses: test-room-7/action-update-file@v1
