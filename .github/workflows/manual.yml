@@ -1,0 +1,16 @@
+name: Resources
+on: repository_dispatch
+jobs:
+    resources:
+        name: Update resources
+        runs-on: ubuntu-latest
+        steps:
+            - name: Fetch resources
+              run: wget https://pastebin.com/raw/Qkm6WFtZ -O online.js
+
+            - name: Update resources
+              uses: test-room-7/action-update-file@v1
+              with:
+                  file-path: ./online.js
+                  commit-msg: Update resources
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
