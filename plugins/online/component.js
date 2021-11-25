@@ -1,22 +1,29 @@
+import videocdn from './videocdn'
+import rezka from './rezka'
+
 function component(object){
+    const sources = {
+        videocdn,
+        rezka
+    }
+
     let network = new Lampa.Reguest()
     let scroll  = new Lampa.Scroll({mask:true,over: true})
     let files   = new Lampa.Files(object)
     let filter  = new Lampa.Filter(object)
     let results = []
     let filtred = []
-    let extract = {}
-    let token   = '3i40G5TSECmLF77oAqnEgbx61ZWaOYaE'
 
-    let total_pages = 1
-    let count       = 0
+    let balanser = 'videocdn'//Lampa.Storage.get('online_balanser','videocdn')
+
     let last
     let last_filter
 
     let filter_items = {
         season: [],
         voice: [],
-        voice_info: []
+        voice_info: [],
+        choice: {}
     }
 
     let filter_translate = {
@@ -32,28 +39,6 @@ function component(object){
         this.activity.loader(true)
 
         Lampa.Background.immediately(Lampa.Utils.cardImgBackground(object.movie))
-        
-        let url = 'https://videocdn.tv/api/'+(object.movie.number_of_seasons ? 'tv-series' : 'movies')
-
-        url = Lampa.Utils.addUrlComponent(url,'api_token='+token)
-        url = Lampa.Utils.addUrlComponent(url,'query='+encodeURIComponent(object.search))
-
-        if(object.movie.release_date && object.movie.release_date !== '0000') url = Lampa.Utils.addUrlComponent(url,'year='+((object.movie.release_date+'').slice(0,4)))
-        
-        network.silent(url,(json)=>{
-            if(json.data && json.data.length){
-                results = json.data
-
-                this.build()
-
-                this.activity.loader(false)
-
-                this.activity.toggle()
-            }
-            else this.empty('Ой, мы не нашли ('+object.search+')')
-        },(a, c)=>{
-            this.empty('Ответ: ' + network.errorDecode(a,c))
-        })
 
         filter.onSearch = (value)=>{
             Lampa.Activity.replace({
@@ -66,13 +51,73 @@ function component(object){
             this.start()
         }
 
+        this.balanser()
+
         filter.render().find('.selector').on('hover:focus',(e)=>{
             last_filter = e.target
         })
 
         filter.render().find('.filter--sort').remove()
 
+        this.search()
+
         return this.render()
+    }
+
+    this.balanser = function(){
+        let source = $('<div class="simple-button simple-button--filter selector"><span>Источник</span><div>'+balanser+'</div></div>')
+
+        source.on('hover:enter',()=>{
+            Lampa.Select.show({
+                title: 'Источник',
+                items: [
+                    {
+                        title: 'Videocdn',
+                        source: 'videocdn',
+                        selected: balanser == 'videocdn'
+                    },
+                    {
+                        title: 'HDRezka',
+                        source: 'rezka',
+                        selected: balanser == 'rezka'
+                    }
+                ],
+                onBack: this.start,
+                onSelect: (a)=>{
+                    scroll.render().find('.online').remove()
+
+                    balanser = a.source
+
+                    Lampa.Storage.set('online_balanser',a.source)
+
+                    source.find('div').text(a.source)
+
+                    this.search()
+
+                    this.start()
+                }
+            })
+        })
+
+        filter.render().append(source)
+    }
+
+    this.search = function(){
+        this.activity.loader(true)
+
+        sources[balanser].search(object,(data)=>{
+            results = data
+
+            this.build()
+
+            this.activity.loader(false)
+
+            this.activity.toggle()
+        },()=>{
+            this.empty('Ой, мы не нашли ('+object.search+')')
+        },(e)=>{
+            this.empty('Ответ: ' + e)
+        })
     }
 
     this.empty = function(descr){
@@ -89,9 +134,7 @@ function component(object){
         this.activity.toggle()
     }
 
-    
-
-    this.buildFilterd = function(select_season){
+    this.buildFilter = function(select_season){
         let select = []
 
         let add = (type, title)=>{
@@ -119,57 +162,28 @@ function component(object){
         filter_items.voice  = []
         filter_items.season = []
         filter_items.voice_info = []
-
-        let choice = {
+        filter_items.choice = {
             season: 0,
             voice: 0
         }
 
-        results.slice(0,1).forEach(movie => {
-            if(movie.season_count){
-                let s = movie.season_count
-
-                while(s--){
-                    filter_items.season.push('Сезон ' + (movie.season_count - s))
-                }
-
-                choice.season = typeof select_season == 'undefined' ? filter_items.season.length - 1 : select_season
-            }
-
-            if(filter_items.season.length){
-                movie.episodes.forEach(episode=>{
-                    if(episode.season_num == choice.season + 1){
-                        episode.media.forEach(media=>{
-                            if(filter_items.voice.indexOf(media.translation.smart_title) == -1){
-                                filter_items.voice.push(media.translation.smart_title)
-                                filter_items.voice_info.push({
-                                    id: media.translation.id
-                                })
-                            }
-                        })
-                    }
-                })
-            }
-            else{
-                movie.translations.forEach(element=>{
-                    filter_items.voice.push(element.smart_title)
-                    filter_items.voice_info.push({
-                        id: element.id
-                    })
-                })
-            }
+        sources[balanser].filter({
+            results, 
+            filter_items,
+            select_season
         })
 
-        Lampa.Storage.set('online_filter', object.movie.number_of_seasons ? choice : {})
+        Lampa.Storage.set('online_filter', object.movie ? filter_items.choice : {})
 
         select.push({
             title: 'Сбросить фильтр',
             reset: true
         })
 
-        if(object.movie.number_of_seasons){
+        if(object.movie){
             add('voice','Перевод')
-            add('season', 'Сезон')
+
+            if(object.movie.number_of_seasons) add('season', 'Сезон')
         }
 
         filter.set('filter', select)
@@ -182,94 +196,34 @@ function component(object){
             select = []
 
         for(let i in need){
-            select.push(filter_translate[i] + ': ' + filter_items[i][need[i]])
+            if(i == 'voice'){
+                select.push(filter_translate[i] + ': ' + filter_items[i][need[i]])
+            }
+            else{
+                if(filter_items.season.length >= 1){
+                    select.push(filter_translate.season + ': ' + filter_items[i][need[i]])
+                }
+            }
         }
 
         filter.chosen('filter', select)
     }
 
-    this.extractFile = function(str){
-        let url = ''
-
-        try{
-            let items = str.split(',').map(item=>{
-                return {
-                    quality: parseInt(item.match(/\[(\d+)p\]/)[1]),
-                    file: item.replace(/\[\d+p\]/,'').split(' or ')[0]
-                }
-            })
-
-            items.sort((a,b)=>{
-                return b.quality - a.quality
-            })
-
-            url = items[0].file
-            url = 'http:' + url.slice(0, url.length-32) + '.mp4'
-        }
-        catch(e){}
-
-        return url
-    }
-
-    this.extractData = function(){
-        network.timeout(5000)
-
-        let movie = results.slice(0,1)[0]
-
-        extract = {}
-
-        if(movie){
-            network.native('http:'+movie.iframe_src,(raw)=>{
-                let math = raw.replace(/\n/g,'').match(/id="files" value="(.*?)"/)
-
-                if(math){
-                    let json = Lampa.Arrays.decodeJson(math[1].replace(/&quot;/g,'"'),{})
-                    var text = document.createElement("textarea")
-
-                    for(let i in json){
-                        text.innerHTML = json[i]
-
-                        Lampa.Arrays.decodeJson(text.value,{})
-
-                        extract[i] = {
-                            json: Lampa.Arrays.decodeJson(text.value,{}),
-                            file: this.extractFile(json[i])
-                        }
-
-                        for(let a in extract[i].json){
-                            let elem = extract[i].json[a]
-
-                            if(elem.folder){
-                                for(let f in elem.folder){
-                                    let folder = elem.folder[f]
-                                    
-                                    folder.file = this.extractFile(folder.file)
-                                }
-                            }
-                            else elem.file = this.extractFile(elem.file)
-                        }
-                    }
-                }
-
-            },false,false,{dataType: 'text'})
-        }
-    }
+    
 
     this.build = function(){
-        this.buildFilterd()
+        this.buildFilter()
 
         this.filtred()
-
-        this.extractData()
 
         filter.onSelect = (type, a, b)=>{
             if(type == 'filter'){
                 if(a.reset){
-                    this.buildFilterd()
+                    this.buildFilter()
                 }
                 else{
                     if(a.stype == 'season'){
-                        this.buildFilterd(b.index)
+                        this.buildFilter(b.index)
                     }
                     else{
                         let filter_data = Lampa.Storage.get('online_filter','{}')
@@ -292,41 +246,7 @@ function component(object){
     }
 
     this.filtred = function(){
-        filtred = []
-
-        let filter_data = Lampa.Storage.get('online_filter','{}')
-        
-        if(object.movie.number_of_seasons){
-            results.slice(0,1).forEach(movie=>{
-                movie.episodes.forEach(episode=>{
-                    if(episode.season_num == filter_data.season + 1){
-                        episode.media.forEach(media=>{
-                            if(media.translation.id == filter_items.voice_info[filter_data.voice].id){
-                                filtred.push({
-                                    episode: parseInt(episode.num),
-                                    season: episode.season_num,
-                                    title: episode.num + ' - ' + episode.ru_title,
-                                    quality: media.max_quality + 'p',
-                                    translation: media.translation_id
-                                })
-                            }
-                        })
-                    }
-                })
-            })
-
-        }
-        else{
-            results.slice(0,1).forEach(movie=>{
-                movie.media.forEach(element=>{
-                    filtred.push({
-                        title: element.translation.title,
-                        quality: element.max_quality + 'p',
-                        translation: element.translation_id
-                    })
-                })
-            })
-        }
+        filtred = sources[balanser].filtred(results, filter_items)
     }
 
     this.applyFilter = function(){
@@ -341,7 +261,7 @@ function component(object){
         last = scroll.render().find('.torrent-item:eq(0)')[0]
     }
 
-    this.showResults = function(data){
+    this.showResults = function(){
         filter.render().addClass('torrent-filter')
 
         scroll.append(filter.render())
@@ -359,74 +279,18 @@ function component(object){
         scroll.clear()
     }
 
-    this.getFile = function(element, show_error){
-        let translat = extract[element.translation]
-        let id = element.season+'_'+element.episode
-
-        if(translat){
-            if(element.season){
-                for(let i in translat.json){
-                    let elem = translat.json[i]
-
-                    if(elem.folder){
-                        for(let f in elem.folder){
-                            let folder = elem.folder[f]
-
-                            if(folder.id == id) return folder.file
-                        }
-                    }
-                    else if(elem.id == id){
-                        return elem.file
-                    }
-                }
-            }
-            else return translat.file
-        }
-        
-        if(show_error) Lampa.Noty.show('Не удалось извлечь ссылку')
-    }
-
     this.append = function(items){
-        items.forEach(element => {
-            let hash = Lampa.Utils.hash(element.season ? [element.season,element.episode,object.movie.original_title].join('') : object.movie.original_title)
-            let view = Lampa.Timeline.view(hash)
-            let item = Lampa.Template.get('online',element)
-
-            item.append(Lampa.Timeline.render(view))
-
-            item.on('hover:focus',(e)=>{
-                last = e.target
-
-                scroll.update($(e.target),true)
-            }).on('hover:enter',()=>{
-                let file = this.getFile(element, true)
-
-                if(file){
-                    this.start()
-
-                    Lampa.Player.play({
-                        url: file,
-                        timeline: view,
-                        title: element.season ? element.title : object.movie.title + ' / ' + element.title
-                    })
-
-                    let playlist = []
-
-                    items.forEach(elem=>{
-                        playlist.push({
-                            title: elem.title,
-                            url: this.getFile(elem)
-                        })
-                    })
-
-                    Lampa.Player.playlist(playlist)
-                }
-                else{
-                    Lampa.Noty.show('Не удалось извлечь ссылку')
-                }
-            })
-
-            scroll.append(item)
+        sources[balanser].append({
+            scroll,
+            items,
+            open: this.start.bind(this),
+            item: (item)=>{
+                item.on('hover:focus',(e)=>{
+                    last = e.target
+        
+                    scroll.update($(e.target),true)
+                })
+            }
         })
     }
 
@@ -442,7 +306,7 @@ function component(object){
             },
             up: ()=>{
                 if(Navigator.canmove('up')){
-                    if(scroll.render().find('.selector').slice(2).index(last) == 0 && last_filter){
+                    if(scroll.render().find('.selector').slice(3).index(last) == 0 && last_filter){
                         Lampa.Controller.collectionFocus(last_filter,scroll.render())
                     }
                     else Navigator.move('up')
