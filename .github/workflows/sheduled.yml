@@ -1,4 +1,4 @@
-name: Resources
+name: Update on schedule
 # on: workflow_dispatch
 on:
   schedule:
