@@ -1,9 +1,9 @@
 name: Resources
-# on: workflow_dispatch
-on:
-  schedule:
+on: workflow_dispatch
+#on:
+#  schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '*/10 * * * *'
+#    - cron:  '*/10 * * * *'
 jobs:
   resources:
     name: Update resources
