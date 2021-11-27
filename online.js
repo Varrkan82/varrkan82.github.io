@@ -9,6 +9,7 @@
     function search$1(_object, success, empty, error) {
       object$1 = _object;
       var url = 'https://videocdn.tv/api/';
+      var query = object$1.movie.imdb_id || object$1.search;
 
       if (object$1.movie.original_language == 'ja' && isAnime(object$1.movie.genres)) {
         url += object$1.movie.number_of_seasons ? 'anime-tv-series' : 'animes';
@@ -17,7 +18,8 @@
       }
 
       url = Lampa.Utils.addUrlComponent(url, 'api_token=' + token$1);
-      url = Lampa.Utils.addUrlComponent(url, 'query=' + encodeURIComponent(object$1.search));
+      url = Lampa.Utils.addUrlComponent(url, 'query=' + encodeURIComponent(query));
+      url = Lampa.Utils.addUrlComponent(url, 'field=global');
       if (object$1.movie.release_date && object$1.movie.release_date !== '0000') url = Lampa.Utils.addUrlComponent(url, 'year=' + (object$1.movie.release_date + '').slice(0, 4));
       network$1.silent(url, function (json) {
         if (json.data && json.data.length) {
