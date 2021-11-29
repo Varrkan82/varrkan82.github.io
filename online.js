@@ -23,8 +23,14 @@
       if (object$1.movie.release_date && object$1.movie.release_date !== '0000') url = Lampa.Utils.addUrlComponent(url, 'year=' + (object$1.movie.release_date + '').slice(0, 4));
       network$1.silent(url, function (json) {
         if (json.data && json.data.length) {
-          success(json.data);
-          extractData(json.data);
+          if (json.data.length == 1 || object$1.clarification) {
+            success(json.data);
+            extractData(json.data);
+          } else {
+            empty(json.data.map(function (e) {
+              return e.ru_title;
+            }));
+          }
         } else empty();
       }, function (a, c) {
         error(network$1.errorDecode(a, c));
@@ -525,14 +531,16 @@
           _this3.activity.loader(false);
 
           _this3.activity.toggle();
-        }, function () {
-          _this3.empty('Ой, мы не нашли (' + object.search + ')');
+        }, function (similars) {
+          if (similars) {
+            _this3.empty('Найдено несколько похожих вариантов, уточните нужный', similars);
+          } else _this3.empty('Ой, мы не нашли (' + object.search + ')', similars);
         }, function (e) {
           _this3.empty('Ответ: ' + e);
         });
       };
 
-      this.empty = function (descr) {
+      this.empty = function (descr, similars) {
         var empty = new Lampa.Empty({
           descr: descr
         });
@@ -541,7 +549,7 @@
           this.listEmpty();
           this.start();
         } else {
-          files.append(empty.render(filter.empty()));
+          files.append(empty.render(similars ? filter.similar(similars) : filter.empty()));
           this.start = empty.start;
         }
 
