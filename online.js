@@ -17,7 +17,7 @@
        * @param {Object} _object 
        */
 
-      this.search = function (_object) {
+      this.search = function (_object, kinopoisk_id) {
         object = _object;
         var url = 'https://videocdn.tv/api/';
         var query = object.movie.imdb_id || object.search;
@@ -29,9 +29,9 @@
         }
 
         url = Lampa.Utils.addUrlComponent(url, 'api_token=' + token);
-        url = Lampa.Utils.addUrlComponent(url, 'query=' + encodeURIComponent(query));
-        url = Lampa.Utils.addUrlComponent(url, 'field=global'); //if(object.movie.release_date && object.movie.release_date !== '0000') url = Lampa.Utils.addUrlComponent(url,'year='+((object.movie.release_date+'').slice(0,4)))
-
+        url = Lampa.Utils.addUrlComponent(url, 'field=kinopoisk_id');
+        url = Lampa.Utils.addUrlComponent(url, 'query=' + encodeURIComponent(kinopoisk_id));
+        url = Lampa.Utils.addUrlComponent(url, 'field=global');
         choice = {
           season: 0,
           voice: 0
@@ -39,12 +39,7 @@
         network.clear();
         network.silent(url, function (json) {
           if (json.data && json.data.length) {
-            if (json.data.length == 1 || object.clarification) {
-              success(json.data);
-            } else {
-              similars(json.data);
-            }
-
+            success(json.data);
             component.loading(false);
           } else component.empty('По запросу (' + query + ') нет результатов');
         }, function (a, c) {
@@ -93,24 +88,6 @@
         return genres.filter(function (gen) {
           return gen.id == 16;
         }).length;
-      }
-      /**
-       * Есть похожие карточки
-       * @param {Object} json 
-       */
-
-
-      function similars(json) {
-        json.forEach(function (elem) {
-          var year = elem.start_date || elem.year;
-          elem.title = elem.ru_title;
-          elem.quality = year ? (year + '').slice(0, 4) : '----';
-          var item = Lampa.Template.get('online_folder', elem);
-          item.on('hover:enter', function () {
-            success([elem]);
-          });
-          component.append(item);
-        });
       }
       /**
        * Успешно, есть данные
@@ -412,7 +389,6 @@
 
     function create(component) {
       var network = new Lampa.Reguest();
-      var token = '2d55adfd-019d-4567-bbf7-67d503f61b5a';
       var object = {};
       var extract = {};
       var select_title = '';
@@ -427,29 +403,11 @@
        * @param {Object} _object 
        */
 
-      this.search = function (_object) {
+      this.search = function (_object, kinopoisk_id) {
         object = _object;
+        select_id = kinopoisk_id;
         select_title = object.movie.title;
-        var url = 'https://kinopoiskapiunofficial.tech/api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(object.search) + '&page=1';
-        network.clear();
-        network.silent(url, function (json) {
-          if (json.films && json.films.length) {
-            if (json.films.length == 1) {
-              select_id = json.films[0].filmId;
-              getFilm(json.films[0].filmId);
-            } else {
-              similars(json.films);
-            }
-
-            component.loading(false);
-          } else component.empty('По запросу (' + object.search + ') нет результатов');
-        }, function (a, c) {
-          component.empty(network.errorDecode(a, c));
-        }, false, {
-          headers: {
-            'X-API-KEY': token
-          }
-        });
+        getFilm(kinopoisk_id);
       };
       /**
        * Сброс фильтра
@@ -490,30 +448,6 @@
         network.clear();
         extract = null;
       };
-      /**
-       * Показать похожие
-       * @param {Array} films 
-       */
-
-
-      function similars(films) {
-        films.forEach(function (elem) {
-          var title = [];
-          if (elem.nameRu) title.push(elem.nameRu);
-          if (elem.nameEn) title.push(elem.nameEn);
-          elem.title = title.join(' / ');
-          elem.quality = elem.year ? (elem.year + '').slice(0, 4) : '----';
-          elem.info = ' / ' + (elem.type == 'TV_SERIES' ? 'Сериал' : 'Фильм');
-          var item = Lampa.Template.get('online_folder', elem);
-          item.on('hover:enter', function () {
-            component.loading(true);
-            select_title = elem.title;
-            select_id = elem.filmId;
-            getFilm(elem.filmId);
-          });
-          component.append(item);
-        });
-      }
       /**
        * Запросить фильм
        * @param {Int} id 
@@ -674,10 +608,10 @@
         } else {
           extract.voice.forEach(function (voice) {
             items.push({
-              title: select_title,
+              title: voice.name.length > 3 ? voice.name : select_title,
               quality: '720p ~ 1080p',
               voice: voice,
-              info: ' / ' + voice.name
+              info: ''
             });
           });
         }
@@ -790,12 +724,65 @@
       this.search = function () {
         this.activity.loader(true);
         this.filter({
-          source: ['videocdn']
+          source: filter_sources
         }, {
           source: 0
         });
         this.reset();
-        sources[balanser].search(object);
+        this.find();
+      };
+
+      this.find = function () {
+        var _this2 = this;
+
+        var url = 'https://videocdn.tv/api/';
+        var query = object.movie.imdb_id || object.search;
+
+        if (object.movie.original_language == 'ja' && isAnime(object.movie.genres)) {
+          url += object.movie.number_of_seasons ? 'anime-tv-series' : 'animes';
+        } else {
+          url += object.movie.number_of_seasons ? 'tv-series' : 'movies';
+        }
+
+        url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
+        url = Lampa.Utils.addUrlComponent(url, 'query=' + encodeURIComponent(query));
+        url = Lampa.Utils.addUrlComponent(url, 'field=global');
+        network.clear();
+        network.silent(url, function (json) {
+          if (json.data && json.data.length) {
+            if (json.data.length == 1 || object.clarification) {
+              sources[balanser].search(object, json.data[0].kinopoisk_id);
+            } else {
+              _this2.similars(json.data);
+
+              _this2.loading(false);
+            }
+          } else empty('По запросу (' + query + ') нет результатов');
+        }, function (a, c) {
+          empty(network.errorDecode(a, c));
+        });
+      };
+      /**
+       * Есть похожие карточки
+       * @param {Object} json 
+       */
+
+
+      this.similars = function (json) {
+        var _this3 = this;
+
+        json.forEach(function (elem) {
+          var year = elem.start_date || elem.year;
+          elem.title = elem.ru_title;
+          elem.quality = year ? (year + '').slice(0, 4) : '----';
+          elem.info = '';
+          var item = Lampa.Template.get('online_folder', elem);
+          item.on('hover:enter', function () {
+            sources[balanser].search(object, elem.kinopoisk_id);
+          });
+
+          _this3.append(item);
+        });
       };
       /**
        * Очистить список файлов
