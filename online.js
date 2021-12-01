@@ -436,7 +436,10 @@
           } else {
             url += 'movie/' + voice + '/iframe?h=gidonline.io';
           }
-        } else url += 'embed/' + id;
+        } else {
+          url += 'embed/' + id;
+          url += '?s=1';
+        }
 
         network["native"](url, function (str) {
           component.loading(false);
