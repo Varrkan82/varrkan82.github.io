@@ -733,9 +733,9 @@
 
               _this2.loading(false);
             }
-          } else empty('По запросу (' + query + ') нет результатов');
+          } else _this2.empty('По запросу (' + query + ') нет результатов');
         }, function (a, c) {
-          empty(network.errorDecode(a, c));
+          _this2.empty(network.errorDecode(a, c));
         });
       };
       /**
@@ -754,6 +754,10 @@
           elem.info = '';
           var item = Lampa.Template.get('online_folder', elem);
           item.on('hover:enter', function () {
+            _this3.activity.loader(true);
+
+            _this3.reset();
+
             if (balanser == 'videocdn') sources[balanser].search(object, [elem]);else sources[balanser].search(object, elem.kinopoisk_id);
           });
 
