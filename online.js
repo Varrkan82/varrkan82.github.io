@@ -3,7 +3,6 @@
 
     function videocdn(component) {
       var network = new Lampa.Reguest();
-      var token = '3i40G5TSECmLF77oAqnEgbx61ZWaOYaE';
       var object = {};
       var extract = {};
       var results = [];
@@ -17,34 +16,11 @@
        * @param {Object} _object 
        */
 
-      this.search = function (_object, kinopoisk_id) {
+      this.search = function (_object, found) {
         object = _object;
-        var url = 'https://videocdn.tv/api/';
-        var query = object.movie.imdb_id || object.search;
-
-        if (object.movie.original_language == 'ja' && isAnime(object.movie.genres)) {
-          url += object.movie.number_of_seasons ? 'anime-tv-series' : 'animes';
-        } else {
-          url += object.movie.number_of_seasons ? 'tv-series' : 'movies';
-        }
-
-        url = Lampa.Utils.addUrlComponent(url, 'api_token=' + token);
-        url = Lampa.Utils.addUrlComponent(url, 'field=kinopoisk_id');
-        url = Lampa.Utils.addUrlComponent(url, 'query=' + encodeURIComponent(kinopoisk_id));
-        url = Lampa.Utils.addUrlComponent(url, 'field=global');
-        choice = {
-          season: 0,
-          voice: 0
-        };
-        network.clear();
-        network.silent(url, function (json) {
-          if (json.data && json.data.length) {
-            success(json.data);
-            component.loading(false);
-          } else component.empty('По запросу (' + query + ') нет результатов');
-        }, function (a, c) {
-          component.empty(network.errorDecode(a, c));
-        });
+        results = found;
+        success(found);
+        component.loading(false);
       };
       /**
        * Сброс фильтра
@@ -83,12 +59,6 @@
         network.clear();
         results = null;
       };
-
-      function isAnime(genres) {
-        return genres.filter(function (gen) {
-          return gen.id == 16;
-        }).length;
-      }
       /**
        * Успешно, есть данные
        * @param {Object} json 
@@ -738,6 +708,12 @@
         var url = 'https://videocdn.tv/api/';
         var query = object.movie.imdb_id || object.search;
 
+        function isAnime(genres) {
+          return genres.filter(function (gen) {
+            return gen.id == 16;
+          }).length;
+        }
+
         if (object.movie.original_language == 'ja' && isAnime(object.movie.genres)) {
           url += object.movie.number_of_seasons ? 'anime-tv-series' : 'animes';
         } else {
@@ -751,7 +727,7 @@
         network.silent(url, function (json) {
           if (json.data && json.data.length) {
             if (json.data.length == 1 || object.clarification) {
-              sources[balanser].search(object, json.data[0].kinopoisk_id);
+              if (balanser == 'videocdn') sources[balanser].search(object, json.data);else sources[balanser].search(object, json.data[0].kinopoisk_id);
             } else {
               _this2.similars(json.data);
 
@@ -778,7 +754,7 @@
           elem.info = '';
           var item = Lampa.Template.get('online_folder', elem);
           item.on('hover:enter', function () {
-            sources[balanser].search(object, elem.kinopoisk_id);
+            if (balanser == 'videocdn') sources[balanser].search(object, [elem]);else sources[balanser].search(object, elem.kinopoisk_id);
           });
 
           _this3.append(item);
