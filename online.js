@@ -561,26 +561,28 @@
         var sesons = str.match('<select name="season"[^>]+>(.*?)</select>');
         var episod = str.match('<select name="episode"[^>]+>(.*?)</select>');
 
-        if (voices) {
-          var select = $('<select>' + voices[1] + '</select>');
-          $('option', select).each(function () {
-            var token = $(this).attr('data-token'); //if(token){
-
-            extract.voice.push({
-              token: token,
-              name: $(this).text()
-            }); //}
-          });
-        }
-
         if (sesons) {
-          var _select = $('<select>' + sesons[1] + '</select>');
-
-          $('option', _select).each(function () {
+          var select = $('<select>' + sesons[1] + '</select>');
+          $('option', select).each(function () {
             extract.season.push({
               id: $(this).attr('value'),
               name: $(this).text()
             });
+          });
+        }
+
+        if (voices) {
+          var _select = $('<select>' + voices[1] + '</select>');
+
+          $('option', _select).each(function () {
+            var token = $(this).attr('data-token');
+
+            if (token || extract.season.length) {
+              extract.voice.push({
+                token: token,
+                name: $(this).text()
+              });
+            }
           });
         }
 
