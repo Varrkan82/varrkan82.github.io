@@ -361,6 +361,7 @@
       var network = new Lampa.Reguest();
       var object = {};
       var extract = {};
+      var embed = 'https://voidboost.net/';
       var select_title = '';
       var select_id = '';
       var filter_items = {};
@@ -418,29 +419,24 @@
         network.clear();
         extract = null;
       };
-      /**
-       * Запросить фильм
-       * @param {Int} id 
-       * @param {String} voice 
-       */
 
-
-      function getFilm(id, voice) {
+      function getSeasons(voice, call) {
+        var url = embed + 'serial/' + voice + '/iframe?h=gidonline.io';
         network.clear();
         network.timeout(10000);
-        var url = 'https://voidboost.net/';
+        network["native"](url, function (str) {
+          extractData(str);
+          call();
+        }, function () {
+          component.empty();
+        }, false, {
+          dataType: 'text'
+        });
+      }
 
-        if (voice) {
-          if (extract.season.length) {
-            url += 'serial/' + voice + '/iframe?s=' + extract.season[choice.season].id + '&h=gidonline.io';
-          } else {
-            url += 'movie/' + voice + '/iframe?h=gidonline.io';
-          }
-        } else {
-          url += 'embed/' + id;
-          url += '?s=1';
-        }
-
+      function getEmbed(url) {
+        network.clear();
+        network.timeout(10000);
         network["native"](url, function (str) {
           component.loading(false);
           extractData(str);
@@ -451,6 +447,44 @@
         }, false, {
           dataType: 'text'
         });
+      }
+      /**
+       * Запросить фильм
+       * @param {Int} id 
+       * @param {String} voice 
+       */
+
+
+      function getFilm(id, voice) {
+        network.clear();
+        network.timeout(10000);
+        var url = embed;
+
+        if (voice) {
+          if (extract.season.length) {
+            var ses = extract.season[choice.season].id;
+            url += 'serial/' + voice + '/iframe?s=' + ses + '&h=gidonline.io';
+            return getSeasons(voice, function () {
+              var check = extract.season.filter(function (s) {
+                return s.id == ses;
+              });
+
+              if (!check.length) {
+                choice.season = extract.season.length - 1;
+                url = embed + 'serial/' + voice + '/iframe?s=' + extract.season[choice.season].id + '&h=gidonline.io';
+              }
+
+              getEmbed(url);
+            });
+          } else {
+            url += 'movie/' + voice + '/iframe?h=gidonline.io';
+            getEmbed(url);
+          }
+        } else {
+          url += 'embed/' + id;
+          url += '?s=1';
+          getEmbed(url);
+        }
       }
       /**
        * Построить фильтр
@@ -571,7 +605,7 @@
         if (extract.season.length) {
           extract.episode.forEach(function (episode) {
             items.push({
-              title: 'S' + (choice.season + 1) + ' / ' + episode.name,
+              title: 'S' + extract.season[choice.season].id + ' / ' + episode.name,
               quality: '720p ~ 1080p',
               season: choice.season + 1,
               episode: parseInt(episode.id),
