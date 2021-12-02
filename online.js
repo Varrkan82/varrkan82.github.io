@@ -510,10 +510,14 @@
 
       function getStream(element, call, error) {
         if (element.stream) return call(element.stream);
-        var url = 'https://voidboost.net/';
+        var url = embed;
 
         if (element.season) {
-          url += 'serial/' + extract.voice[choice.voice].token + '/iframe?s=' + element.season + '&e=' + element.episode + '&h=gidonline.io';
+          if (choice.voice) {
+            url += 'serial/' + extract.voice[choice.voice].token + '/iframe?s=' + element.season + '&e=' + element.episode + '&h=gidonline.io';
+          } else {
+            url += 'embed/' + select_id + '?s=1&e=' + element.episode + '&h=gidonline.io';
+          }
         } else {
           url += 'movie/' + element.voice.token + '/iframe?h=gidonline.io';
         }
@@ -560,14 +564,12 @@
         if (voices) {
           var select = $('<select>' + voices[1] + '</select>');
           $('option', select).each(function () {
-            var token = $(this).attr('data-token');
+            var token = $(this).attr('data-token'); //if(token){
 
-            if (token) {
-              extract.voice.push({
-                token: token,
-                name: $(this).text()
-              });
-            }
+            extract.voice.push({
+              token: token,
+              name: $(this).text()
+            }); //}
           });
         }
 
@@ -607,7 +609,7 @@
             items.push({
               title: 'S' + extract.season[choice.season].id + ' / ' + episode.name,
               quality: '720p ~ 1080p',
-              season: choice.season + 1,
+              season: extract.season[choice.season].id,
               episode: parseInt(episode.id),
               info: ' / ' + extract.voice[choice.voice].name
             });
@@ -743,7 +745,7 @@
         var _this2 = this;
 
         var url = 'https://videocdn.tv/api/';
-        var query = object.movie.imdb_id || object.search;
+        var query = object.search;
 
         function isAnime(genres) {
           return genres.filter(function (gen) {
