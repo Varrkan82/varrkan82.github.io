@@ -1237,6 +1237,7 @@
         network = null;
         sources.videocdn.destroy();
         sources.rezka.destroy();
+        sources.kinobase.destroy();
       };
     }
 
