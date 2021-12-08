@@ -378,7 +378,9 @@
         object = _object;
         select_id = kinopoisk_id;
         select_title = object.movie.title;
-        getFilm(kinopoisk_id);
+        getFirstTranlate(kinopoisk_id, function (voice) {
+          getFilm(kinopoisk_id, voice);
+        });
       };
       /**
        * Сброс фильтра
@@ -427,6 +429,19 @@
         network["native"](url, function (str) {
           extractData(str);
           call();
+        }, function () {
+          component.empty();
+        }, false, {
+          dataType: 'text'
+        });
+      }
+
+      function getFirstTranlate(id, call) {
+        network.clear();
+        network.timeout(10000);
+        network["native"](embed + 'embed/' + id + '?s=1', function (str) {
+          extractData(str);
+          if (extract.voice.length) call(extract.voice[0].token);else component.empty();
         }, function () {
           component.empty();
         }, false, {
@@ -513,11 +528,7 @@
         var url = embed;
 
         if (element.season) {
-          if (choice.voice) {
-            url += 'serial/' + extract.voice[choice.voice].token + '/iframe?s=' + element.season + '&e=' + element.episode + '&h=gidonline.io';
-          } else {
-            url += 'embed/' + select_id + '?s=1&e=' + element.episode + '&h=gidonline.io';
-          }
+          url += 'serial/' + extract.voice[choice.voice].token + '/iframe?s=' + element.season + '&e=' + element.episode + '&h=gidonline.io';
         } else {
           url += 'movie/' + element.voice.token + '/iframe?h=gidonline.io';
         }
@@ -577,7 +588,7 @@
           $('option', _select).each(function () {
             var token = $(this).attr('data-token');
 
-            if (token || extract.season.length) {
+            if (token) {
               extract.voice.push({
                 token: token,
                 name: $(this).text()
@@ -1013,7 +1024,9 @@
           }).length;
         }
 
-        if (object.movie.original_language == 'ja' && isAnime(object.movie.genres)) {
+        var ja = ['ja', 'zh'];
+
+        if (ja.indexOf(object.movie.original_language) >= 0 && isAnime(object.movie.genres)) {
           url += object.movie.number_of_seasons ? 'anime-tv-series' : 'animes';
         } else {
           url += object.movie.number_of_seasons ? 'tv-series' : 'movies';
