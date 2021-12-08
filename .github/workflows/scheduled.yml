@@ -9,12 +9,22 @@ jobs:
     name: Update resources
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch resources
+      - name: Fetch Online plugin
         run: wget ${{ secrets.PLUGIN_URL }} -O online.js
 
-      - name: Update resources
+      - name: Update Online plugin
         uses: test-room-7/action-update-file@v1
         with:
             file-path: online.js
+            commit-msg: Update resources
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch Nyam resources
+        run: wget ${{ secrets.NYAM_PLUGIN_URL }} -O nyam.js
+
+      - name: Update Nyam resources
+        uses: test-room-7/action-update-file@v1
+        with:
+            file-path: nyam.js
             commit-msg: Update resources
             github-token: ${{ secrets.GITHUB_TOKEN }}
