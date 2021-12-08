@@ -1024,6 +1024,13 @@
         url = Lampa.Utils.addUrlComponent(url, 'field=global');
         network.clear();
         network.silent(url, function (json) {
+          if (object.movie.imdb_id) {
+            var imdb = json.data.filter(function (elem) {
+              return elem.imdb_id == object.movie.imdb_id;
+            });
+            if (imdb.length) json.data = imdb;
+          }
+
           if (json.data && json.data.length) {
             if (json.data.length == 1 || object.clarification) {
               if (balanser == 'videocdn') sources[balanser].search(object, json.data);else sources[balanser].search(object, json.data[0].kinopoisk_id);
