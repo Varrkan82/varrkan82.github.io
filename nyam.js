@@ -148,11 +148,17 @@
         title: 'spankbang.com',
         url: 'http://vi.sisi.am/sbg'
       }, {
+        title: 'xhamster.com',
+        url: 'http://vi.sisi.am/xmr'
+      }, {
         title: 'porntrex.com',
         url: 'http://vi.sisi.am/ptx'
       }, {
         title: 'hqporner.com',
         url: 'http://vi.sisi.am/hqr'
+      }, {
+        title: 'ebalovo.porn',
+        url: 'http://vi.sisi.am/elo'
       }];
       Lampa.Listener.follow('app', function (e) {
         if (e.type == 'ready') {
