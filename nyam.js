@@ -157,6 +157,12 @@
         title: 'hqporner.com',
         url: 'http://vi.sisi.am/hqr'
       }, {
+        title: 'xvideos.com',
+        url: 'http://vi.sisi.am/xds'
+      }, {
+        title: 'xnxx.com',
+        url: 'http://vi.sisi.am/xnx'
+      }, {
         title: 'ebalovo.porn',
         url: 'http://vi.sisi.am/elo'
       }];
