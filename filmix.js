@@ -29,38 +29,19 @@
             Lampa.Background.immediately(Lampa.Utils.cardImgBackground(object.movie));
 
             filmname = encodeURIComponent(object.search)
-            var url = 'http://arkmv.ru/api.php?search=' + filmname;
+            var url = 'http://arkmv.ru/1.php?search=' + filmname;
             var xhr = new XMLHttpRequest();
-            var xhr2 = new XMLHttpRequest();
-            var xhr3 = new XMLHttpRequest();
-            var xhr4 = new XMLHttpRequest();
-            
             xhr.open('GET', url, true);
             xhr.send();
             
             xhr.onload = function() {
                 var results_films = xhr.responseText;
-                    var results_films = results_films.match("http://filmix.tel/fork/item/(.*?)]");
-                    list = results_films[1];
-
-                    xhr2.open('GET', 'http://arkmv.ru/api.php?list=' + list, true);
-                    xhr2.send(); }
-            xhr2.onload = function() {
-                var results_films = xhr2.responseText;
-                    var ozvk = results_films.match("<title>(.*?)<"); //Озвучка
-                    ozvuk = ozvk[1]; //Озвучка
-                    var results_films = results_films.match("folder/(.*?)]");
-                    var stream = results_films[1];
-
-                    xhr3.open('GET', 'http://arkmv.ru/api.php?list1=' + list + '&stream=' + stream, true);
-                    xhr3.send(); }
-            xhr3.onload = function() {
-                var results_films = xhr3.responseText;
-                    var quality = results_films.match("Смотреть в качестве(.*?)]"); //Качество
-                    filmixq = quality[1]; //Качество
-                    var videos = results_films.match("http://(.*?).mp4");
-                    var video_1080p = videos[0];
-                    link1080p = video_1080p;
+                    var link = results_films.match("http(.*?)mp4");
+                    var voice = results_films.match("<title>(.*?)]");
+                    var quality = results_films.match("Смотреть в качестве(.*?)]");
+                    filmixq = quality[1];
+                    ozvuk = voice[1];
+                    link1080p = link[0];
 
                     _this.build();
 
