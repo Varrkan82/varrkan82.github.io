@@ -29,8 +29,9 @@
             Lampa.Background.immediately(Lampa.Utils.cardImgBackground(object.movie));
 
             filmname = encodeURIComponent(object.search)
-            var url = 'http://arkmv.ru/1.php?search=' + filmname;
+            var url = 'http://arkmv.ru/api.php?search=' + filmname;
             var xhr = new XMLHttpRequest();
+            var xhr1 = new XMLHttpRequest();
             xhr.open('GET', url, true);
             xhr.send();
             
@@ -42,13 +43,23 @@
                     filmixq = quality[1];
                     ozvuk = voice[1];
                     link1080p = link[0];
-
-                    _this.build();
-
-                    _this.activity.loader(false);
-
-                   _this.activity.toggle();}
+            xhr1.open('GET', 'http://arkmv.ru/api.php?check=' + link1080p, true);
+            xhr1.send();
              };
+            xhr1.onload = function() {
+                        if (xhr1.responseText == 200) {
+                            link1080p = link1080p; 
+                    _this.build();
+                    _this.activity.loader(false);
+                    _this.activity.toggle();}
+                        else { 
+                            link1080p = link1080p.replace(/2160.mp4/, '1440.mp4');
+                            var results_films = xhr.responseText;
+                            filmixq = '1080 Ultra+';
+                    _this.build();
+                    _this.activity.loader(false);
+                    _this.activity.toggle();}
+           }};
         this.buildFilterd = function(select_season) {
 
             var select = [];
