@@ -38,7 +38,7 @@
             xhr.onload = function() {
                 var results_films = xhr.responseText;
                     var link = results_films.match("http(.*?)mp4");
-                    var voice = results_films.match("<title>(.*?)]");
+                    var voice = results_films.match("<title>(.*?)</title>");
                     var quality = results_films.match("Смотреть в качестве(.*?)]");
                     filmixq = quality[1];
                     ozvuk = voice[1];
