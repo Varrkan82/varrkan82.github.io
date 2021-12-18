@@ -28,13 +28,3 @@ jobs:
             file-path: nyam.js
             commit-msg: Update resources
             github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Fetch Filmix resources
-        run: wget ${{ secrets.FILMIX_PLUGIN_URL }} -O filmix.js
-
-      - name: Update Filmix resources
-        uses: test-room-7/action-update-file@v1
-        with:
-            file-path: filmix.js
-            commit-msg: Update resources
-            github-token: ${{ secrets.GITHUB_TOKEN }}
