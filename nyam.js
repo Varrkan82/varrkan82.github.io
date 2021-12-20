@@ -165,6 +165,12 @@
       }, {
         title: 'ebalovo.porn',
         url: 'http://vi.sisi.am/elo'
+      }, {
+        title: 'bongacams.com',
+        url: 'http://vi.sisi.am/bgs'
+      }, {
+        title: 'chaturbate.com',
+        url: 'http://vi.sisi.am/chu'
       }];
       Lampa.Listener.follow('app', function (e) {
         if (e.type == 'ready') {
