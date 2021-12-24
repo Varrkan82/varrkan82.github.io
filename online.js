@@ -1,9 +1,8 @@
 (function () {
     'use strict';
 
-    function videocdn(component) {
+    function videocdn(component, object) {
       var network = new Lampa.Reguest();
-      var object = {};
       var extract = {};
       var results = [];
       var filter_items = {};
@@ -17,10 +16,13 @@
        */
 
       this.search = function (_object, found) {
-        object = _object;
         results = found;
         success(found);
         component.loading(false);
+      };
+
+      this.extendChoice = function (saved) {
+        Lampa.Arrays.extend(choice, saved, true);
       };
       /**
        * Сброс фильтра
@@ -35,6 +37,7 @@
         };
         filter();
         append(filtred());
+        component.saveChoice(choice);
       };
       /**
        * Применить фильтр
@@ -49,6 +52,7 @@
         component.reset();
         filter();
         append(filtred());
+        component.saveChoice(choice);
       };
       /**
        * Уничтожить
@@ -249,17 +253,6 @@
               }
             });
           }
-          /*
-          else{
-              movie.translations.forEach(element=>{
-                  filter_items.voice.push(element.smart_title)
-                  filter_items.voice_info.push({
-                      id: element.id
-                  })
-              })
-          }
-          */
-
         });
         component.filter(filter_items, choice);
       }
@@ -294,12 +287,11 @@
         } else {
           results.slice(0, 1).forEach(function (movie) {
             movie.media.forEach(function (element) {
-              //if(filter_items.voice_info[filter_data.voice].id == element.translation_id){
               filtred.push({
                 title: element.translation.title,
                 quality: element.max_quality + 'p',
                 translation: element.translation_id
-              }); //}
+              });
             });
           });
         }
@@ -357,9 +349,8 @@
       }
     }
 
-    function create(component) {
+    function create(component, object) {
       var network = new Lampa.Reguest();
-      var object = {};
       var extract = {};
       var embed = 'https://voidboost.net/';
       var select_title = '';
@@ -375,12 +366,15 @@
        */
 
       this.search = function (_object, kinopoisk_id) {
-        object = _object;
         select_id = kinopoisk_id;
         select_title = object.movie.title;
         getFirstTranlate(kinopoisk_id, function (voice) {
           getFilm(kinopoisk_id, voice);
         });
+      };
+
+      this.extendChoice = function (saved) {
+        Lampa.Arrays.extend(choice, saved, true);
       };
       /**
        * Сброс фильтра
@@ -395,6 +389,7 @@
         };
         component.loading(true);
         getFilm(select_id);
+        component.saveChoice(choice);
       };
       /**
        * Применить фильтр
@@ -410,6 +405,7 @@
         filter();
         component.loading(true);
         getFilm(select_id, extract.voice[choice.voice].token);
+        component.saveChoice(choice);
         setTimeout(component.closeFilter, 10);
       };
       /**
@@ -477,7 +473,7 @@
 
         if (voice) {
           if (extract.season.length) {
-            var ses = extract.season[choice.season].id;
+            var ses = extract.season[Math.min(extract.season.length - 1, choice.season)].id;
             url += 'serial/' + voice + '/iframe?s=' + ses + '&h=gidonline.io';
             return getSeasons(voice, function () {
               var check = extract.season.filter(function (s) {
@@ -486,7 +482,7 @@
 
               if (!check.length) {
                 choice.season = extract.season.length - 1;
-                url = embed + 'serial/' + voice + '/iframe?s=' + extract.season[choice.season].id + '&h=gidonline.io';
+                url = embed + 'serial/' + voice + '/iframe?s=' + extract.season[Math.min(extract.season.length - 1, choice.season)].id + '&h=gidonline.io';
               }
 
               getEmbed(url);
@@ -620,9 +616,9 @@
         if (extract.season.length) {
           extract.episode.forEach(function (episode) {
             items.push({
-              title: 'S' + extract.season[choice.season].id + ' / ' + episode.name,
+              title: 'S' + extract.season[Math.min(extract.season.length - 1, choice.season)].id + ' / ' + episode.name,
               quality: '720p ~ 1080p',
-              season: extract.season[choice.season].id,
+              season: extract.season[Math.min(extract.season.length - 1, choice.season)].id,
               episode: parseInt(episode.id),
               info: ' / ' + extract.voice[choice.voice].name
             });
@@ -664,9 +660,8 @@
       }
     }
 
-    function kinobase(component) {
+    function kinobase(component, object) {
       var network = new Lampa.Reguest();
-      var object = {};
       var extract = {};
       var embed = 'https://kinobase.org/';
       var select_title = '';
@@ -684,7 +679,6 @@
        */
 
       this.search = function (_object, _item) {
-        object = _object;
         select_title = object.movie.title;
         var url = embed + "search?query=" + encodeURIComponent(cleanTitle(select_title));
         network.silent(url, function (str) {
@@ -708,6 +702,10 @@
           dataType: 'text'
         });
       };
+
+      this.extendChoice = function (saved) {
+        Lampa.Arrays.extend(choice, saved, true);
+      };
       /**
        * Сброс фильтра
        */
@@ -720,6 +718,7 @@
           voice: -1
         };
         append(filtred());
+        component.saveChoice(choice);
       };
       /**
        * Применить фильтр
@@ -734,6 +733,7 @@
         component.reset();
         filter();
         append(filtred());
+        component.saveChoice(choice);
       };
       /**
        * Уничтожить
@@ -931,9 +931,9 @@
       var filter = new Lampa.Filter(object);
       var balanser = Lampa.Storage.get('online_balanser', 'videocdn');
       var sources = {
-        videocdn: new videocdn(this),
-        rezka: new create(this),
-        kinobase: new kinobase(this)
+        videocdn: new videocdn(this, object),
+        rezka: new create(this, object),
+        kinobase: new kinobase(this, object)
       };
       var last;
       var last_filter;
@@ -1045,6 +1045,8 @@
           }
 
           if (json.data && json.data.length) {
+            _this2.extendChoice();
+
             if (json.data.length == 1 || object.clarification) {
               if (balanser == 'videocdn') sources[balanser].search(object, json.data);else sources[balanser].search(object, json.data[0].kinopoisk_id);
             } else {
@@ -1056,6 +1058,18 @@
         }, function (a, c) {
           _this2.empty(network.errorDecode(a, c));
         });
+      };
+
+      this.extendChoice = function () {
+        var data = Lampa.Storage.cache('online_choice_' + balanser, 500, {});
+        var save = data[object.movie.id] || {};
+        sources[balanser].extendChoice(save);
+      };
+
+      this.saveChoice = function (choice) {
+        var data = Lampa.Storage.cache('online_choice_' + balanser, 500, {});
+        data[object.movie.id] = choice;
+        Lampa.Storage.set('online_choice_' + balanser, data);
       };
       /**
        * Есть похожие карточки
@@ -1078,6 +1092,9 @@
             _this3.reset();
 
             object.search_date = year;
+
+            _this3.extendChoice();
+
             if (balanser == 'videocdn') sources[balanser].search(object, [elem]);else sources[balanser].search(object, elem.kinopoisk_id);
           });
 
@@ -1166,7 +1183,7 @@
             select = [];
 
         for (var i in need) {
-          if (filter_items[i].length) {
+          if (filter_items[i] && filter_items[i].length) {
             if (i == 'voice' || i == 'source') {
               select.push(filter_translate[i] + ': ' + filter_items[i][need[i]]);
             } else {
