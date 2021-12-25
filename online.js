@@ -1,10 +1,11 @@
 (function () {
     'use strict';
 
-    function videocdn(component, object) {
+    function videocdn(component, _object) {
       var network = new Lampa.Reguest();
       var extract = {};
       var results = [];
+      var object = _object;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -16,6 +17,7 @@
        */
 
       this.search = function (_object, found) {
+        object = _object;
         results = found;
         success(found);
         component.loading(false);
@@ -349,10 +351,11 @@
       }
     }
 
-    function create(component, object) {
+    function create(component, _object) {
       var network = new Lampa.Reguest();
       var extract = {};
       var embed = 'https://voidboost.net/';
+      var object = _object;
       var select_title = '';
       var select_id = '';
       var filter_items = {};
@@ -366,6 +369,7 @@
        */
 
       this.search = function (_object, kinopoisk_id) {
+        object = _object;
         select_id = kinopoisk_id;
         select_title = object.movie.title;
         getFirstTranlate(kinopoisk_id, function (voice) {
@@ -660,10 +664,11 @@
       }
     }
 
-    function kinobase(component, object) {
+    function kinobase(component, _object) {
       var network = new Lampa.Reguest();
       var extract = {};
       var embed = 'https://kinobase.org/';
+      var object = _object;
       var select_title = '';
       var select_id = '';
       var filter_items = {};
@@ -679,6 +684,7 @@
        */
 
       this.search = function (_object, _item) {
+        object = _object;
         select_title = object.movie.title;
         var url = embed + "search?query=" + encodeURIComponent(cleanTitle(select_title));
         network.silent(url, function (str) {
