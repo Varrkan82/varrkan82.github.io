@@ -943,6 +943,8 @@
       };
       var last;
       var last_filter;
+      var extended;
+      var selected_id;
       var filter_translate = {
         season: 'Сезон',
         voice: 'Перевод',
@@ -985,7 +987,7 @@
         filter.onSelect = function (type, a, b) {
           if (type == 'filter') {
             if (a.reset) {
-              sources[balanser].reset();
+              if (extended) sources[balanser].reset();else _this.start();
             } else {
               if (a.stype == 'source') {
                 balanser = filter_sources[b.index];
@@ -1057,9 +1059,9 @@
           }
 
           if (json.data && json.data.length) {
-            _this2.extendChoice();
-
             if (json.data.length == 1 || object.clarification) {
+              _this2.extendChoice();
+
               if (balanser == 'videocdn') sources[balanser].search(object, json.data);else sources[balanser].search(object, json.data[0].kinopoisk_id);
             } else {
               _this2.similars(json.data);
@@ -1074,13 +1076,14 @@
 
       this.extendChoice = function () {
         var data = Lampa.Storage.cache('online_choice_' + balanser, 500, {});
-        var save = data[object.movie.id] || {};
+        var save = data[selected_id || object.movie.id] || {};
+        extended = true;
         sources[balanser].extendChoice(save);
       };
 
       this.saveChoice = function (choice) {
         var data = Lampa.Storage.cache('online_choice_' + balanser, 500, {});
-        data[object.movie.id] = choice;
+        data[selected_id || object.movie.id] = choice;
         Lampa.Storage.set('online_choice_' + balanser, data);
       };
       /**
@@ -1104,6 +1107,7 @@
             _this3.reset();
 
             object.search_date = year;
+            selected_id = elem.id;
 
             _this3.extendChoice();
 
