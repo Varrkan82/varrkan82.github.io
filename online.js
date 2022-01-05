@@ -542,7 +542,7 @@
             var video = decode(videos[1]); //ухня тут происходит, хрен знает почему после .join() возврошает только последнию ссылку
 
             video = video.slice(1).split(/,\[/).map(function (s) {
-              return s.split(']')[0] + ']' + s.split('or').pop().trim();
+              return s.split(']')[0] + ']' + (s.indexOf(' or ') > -1 ? s.split('or').pop().trim() : s.split(']').pop());
             }).join('[');
             var link = video.match("2160p](.*?)mp4");
             if (!link) link = video.match("1440p](.*?)mp4");
