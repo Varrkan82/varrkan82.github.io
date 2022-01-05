@@ -539,14 +539,19 @@
           var videos = str.match("file': '(.*?)'");
 
           if (videos) {
-            var link = videos[0].match("2160p](.*?)mp4");
-            if (!link) link = videos[0].match("1440p](.*?)mp4");
-            if (!link) link = videos[0].match("1080p Ultra](.*?)mp4");
-            if (!link) link = videos[0].match("1080p](.*?)mp4");
-            if (!link) link = videos[0].match("720p](.*?)mp4");
-            if (!link) link = videos[0].match("480p](.*?)mp4");
-            if (!link) link = videos[0].match("360p](.*?)mp4");
-            if (!link) link = videos[0].match("240p](.*?)mp4");
+            var video = decode(videos[1]); //ухня тут происходит, хрен знает почему после .join() возврошает только последнию ссылку
+
+            video = video.slice(1).split(/,\[/).map(function (s) {
+              return s.split(']')[0] + ']' + s.split('or').pop().trim();
+            }).join('[');
+            var link = video.match("2160p](.*?)mp4");
+            if (!link) link = video.match("1440p](.*?)mp4");
+            if (!link) link = video.match("1080p Ultra](.*?)mp4");
+            if (!link) link = video.match("1080p](.*?)mp4");
+            if (!link) link = video.match("720p](.*?)mp4");
+            if (!link) link = video.match("480p](.*?)mp4");
+            if (!link) link = video.match("360p](.*?)mp4");
+            if (!link) link = video.match("240p](.*?)mp4");
 
             if (link) {
               element.stream = link[1] + 'mp4';
@@ -556,6 +561,17 @@
         }, error, false, {
           dataType: 'text'
         });
+      }
+
+      function decode(x) {
+        var file = x.replace('JCQkIyMjIyEhISEhISE=', '').replace('QCMhQEBAIyMkJEBA', '').replace('QCFeXiFAI0BAJCQkJCQ=', '').replace('Xl4jQEAhIUAjISQ=', '').replace('Xl5eXl5eIyNAzN2FkZmRm', '').split('//_//').join('').substr(2);
+
+        try {
+          return atob(file);
+        } catch (e) {
+          console.log("Encrypt error: ", file);
+          return '';
+        }
       }
       /**
        * Получить данные о фильме
