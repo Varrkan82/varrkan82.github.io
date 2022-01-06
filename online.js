@@ -539,7 +539,8 @@
           var videos = str.match("file': '(.*?)'");
 
           if (videos) {
-            var video = decode(videos[1]); //ухня тут происходит, хрен знает почему после .join() возврошает только последнию ссылку
+            var video = decode(videos[1]);
+            console.log('Online', 'decode:', video); //ухня тут происходит, хрен знает почему после .join() возврошает только последнию ссылку
 
             video = video.slice(1).split(/,\[/).map(function (s) {
               return s.split(']')[0] + ']' + (s.indexOf(' or ') > -1 ? s.split('or').pop().trim() : s.split(']').pop());
