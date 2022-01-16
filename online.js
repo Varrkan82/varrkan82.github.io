@@ -517,6 +517,23 @@
         };
         component.filter(filter_items, choice);
       }
+
+      function parseSubtitles(str) {
+        var subtitle = str.match("subtitle': '(.*?)'");
+
+        if (subtitle) {
+          var index = -1;
+          return subtitle[1].split(',').map(function (sb) {
+            var sp = sb.split(']');
+            index++;
+            return {
+              label: sp[0].slice(1),
+              url: sp.pop(),
+              index: index
+            };
+          });
+        }
+      }
       /**
        * Получить поток
        * @param {*} element 
@@ -556,6 +573,7 @@
 
             if (link) {
               element.stream = link[1] + 'mp4';
+              element.subtitles = parseSubtitles(str);
               call(link[1] + 'mp4');
             } else error();
           } else error();
@@ -671,6 +689,7 @@
               };
               Lampa.Player.play(first);
               Lampa.Player.playlist([first]);
+              if (element.subtitles && Lampa.Player.subtitles) Lampa.Player.subtitles(element.subtitles);
             }, function () {
               Lampa.Noty.show('Не удалось извлечь ссылку');
             });
