@@ -176,16 +176,16 @@
       /**
        * Найти поток
        * @param {Object} element 
-       * @param {Int} max_quality 
-       * @param {Boolean} show_error 
+       * @param {Int} max_quality
        * @returns string
        */
 
 
-      function getFile(element, max_quality, show_error) {
+      function getFile(element, max_quality) {
         var translat = extract[element.translation];
         var id = element.season + '_' + element.episode;
         var file = '';
+        var quality = false;
 
         if (translat) {
           if (element.season) {
@@ -214,12 +214,24 @@
         max_quality = parseInt(max_quality);
 
         if (file) {
-          if (file.split('/').pop().replace('.mp4', '') !== max_quality) {
-            file = file.slice(0, file.lastIndexOf('/')) + '/' + max_quality + '.mp4';
-          }
-        } else if (show_error) Lampa.Noty.show('Не удалось извлечь ссылку');
+          var path = file.slice(0, file.lastIndexOf('/')) + '/';
 
-        return file;
+          if (file.split('/').pop().replace('.mp4', '') !== max_quality) {
+            file = path + max_quality + '.mp4';
+          }
+
+          quality = {};
+          var mass = [1080, 720, 480, 360];
+          mass = mass.slice(mass.indexOf(max_quality));
+          mass.forEach(function (n) {
+            quality[n + 'p'] = path + n + '.mp4';
+          });
+        }
+
+        return {
+          file: file,
+          quality: quality
+        };
       }
       /**
        * Построить фильтр
@@ -319,12 +331,13 @@
           item.append(Lampa.Timeline.render(view));
           item.on('hover:enter', function () {
             if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
-            var file = getFile(element, element.quality, true);
+            var extra = getFile(element, element.quality);
 
-            if (file) {
+            if (extra.file) {
               var playlist = [];
               var first = {
-                url: file,
+                url: extra.file,
+                quality: extra.quality,
                 timeline: view,
                 title: element.season ? element.title : object.movie.title + ' / ' + element.title
               };
@@ -332,9 +345,11 @@
 
               if (element.season) {
                 items.forEach(function (elem) {
+                  var ex = getFile(elem, elem.quality);
                   playlist.push({
                     title: elem.title,
-                    url: getFile(elem, elem.quality),
+                    url: ex.file,
+                    quality: ex.quality,
                     timeline: elem.timeline
                   });
                 });
@@ -343,7 +358,7 @@
               }
 
               Lampa.Player.playlist(playlist);
-            }
+            } else Lampa.Noty.show('Не удалось извлечь ссылку');
           });
           component.append(item);
         });
@@ -556,25 +571,34 @@
           var videos = str.match("file': '(.*?)'");
 
           if (videos) {
-            var video = decode(videos[1]);
-            console.log('Online', 'decode:', video); //ухня тут происходит, хрен знает почему после .join() возврошает только последнию ссылку
+            var video = decode(videos[1]),
+                p1080 = '',
+                first = '',
+                mass = ['2160p', '1440p', '1080p Ultra', '1080p', '720p', '480p', '360p']; //ухня тут происходит, хрен знает почему после .join() возврошает только последнию ссылку
 
             video = video.slice(1).split(/,\[/).map(function (s) {
               return s.split(']')[0] + ']' + (s.indexOf(' or ') > -1 ? s.split('or').pop().trim() : s.split(']').pop());
             }).join('[');
-            var link = video.match("2160p](.*?)mp4");
-            if (!link) link = video.match("1440p](.*?)mp4");
-            if (!link) link = video.match("1080p Ultra](.*?)mp4");
-            if (!link) link = video.match("1080p](.*?)mp4");
-            if (!link) link = video.match("720p](.*?)mp4");
-            if (!link) link = video.match("480p](.*?)mp4");
-            if (!link) link = video.match("360p](.*?)mp4");
-            if (!link) link = video.match("240p](.*?)mp4");
+            element.quality = {};
+            mass.forEach(function (n) {
+              var link = video.match(new RegExp(n + "](.*?)mp4"));
 
-            if (link) {
-              element.stream = link[1] + 'mp4';
+              if (link) {
+                if (!first) first = link[1] + 'mp4';
+                element.quality[n] = link[1] + 'mp4';
+
+                if (n.indexOf('1080') >= 0) {
+                  p1080 = link[1] + 'mp4';
+                  first = p1080;
+                }
+              }
+            });
+            if (!first) element.quality = false;
+
+            if (first) {
+              element.stream = p1080 || first;
               element.subtitles = parseSubtitles(str);
-              call(link[1] + 'mp4');
+              call(element.stream);
             } else error();
           } else error();
         }, error, false, {
@@ -582,16 +606,70 @@
         });
       }
 
-      function decode(x) {
-        var file = x.replace('JCQkIyMjIyEhISEhISE=', '').replace('QCMhQEBAIyMkJEBA', '').replace('QCFeXiFAI0BAJCQkJCQ=', '').replace('Xl4jQEAhIUAjISQ=', '').replace('Xl5eXl5eIyNAzN2FkZmRm', '').split('//_//').join('').substr(2);
+      function decode(data) {
+        function product(iterables, repeat) {
+          var argv = Array.prototype.slice.call(arguments),
+              argc = argv.length;
 
-        try {
-          return atob(file);
-        } catch (e) {
-          console.log("Encrypt error: ", file);
-          return '';
+          if (argc === 2 && !isNaN(argv[argc - 1])) {
+            var copies = [];
+
+            for (var i = 0; i < argv[argc - 1]; i++) {
+              copies.push(argv[0].slice()); // Clone
+            }
+
+            argv = copies;
+          }
+
+          return argv.reduce(function tl(accumulator, value) {
+            var tmp = [];
+            accumulator.forEach(function (a0) {
+              value.forEach(function (a1) {
+                tmp.push(a0.concat(a1));
+              });
+            });
+            return tmp;
+          }, [[]]);
         }
+
+        function unite(arr) {
+          var _final = [];
+          arr.forEach(function (e) {
+            _final.push(e.join(""));
+          });
+          return _final;
+        }
+
+        var trashList = ["@", "#", "!", "^", "$"];
+        var two = unite(product(trashList, 2));
+        var tree = unite(product(trashList, 3));
+        var trashCodesSet = two.concat(tree);
+        var arr = data.replace("#h", "").split("//_//");
+        var trashString = arr.join('');
+        trashCodesSet.forEach(function (i) {
+          trashString = trashString.replaceAll(btoa(i), '');
+        });
+        return atob(trashString.substr(2));
       }
+      /*
+      function decode(x){
+          let file = x.replace('JCQkIyMjIyEhISEhISE=', '')
+              .replace('QCMhQEBAIyMkJEBA', '')
+              .replace('QCFeXiFAI0BAJCQkJCQ=', '')
+              .replace('Xl4jQEAhIUAjISQ=', '')
+              .replace('Xl5eXl5eIyNAzN2FkZmRm', '')
+              .split('//_//')
+              .join('')
+              .substr(2)
+          try {
+              return atob(file)
+          } catch (e){
+              console.log("Encrypt error: ", file)
+              return ''
+          }
+      }
+      */
+
       /**
        * Получить данные о фильме
        * @param {String} str 
@@ -685,6 +763,7 @@
               var first = {
                 url: stream,
                 timeline: view,
+                quality: element.quality,
                 title: element.title
               };
               Lampa.Player.play(first);
@@ -831,6 +910,26 @@
 
         return filtred;
       }
+
+      function parseSubs(vod) {
+        var subtitles = [];
+        vod.split(',').forEach(function (s) {
+          var nam = s.match("\\[(.*?)]");
+          console.log(s);
+
+          if (nam) {
+            var url = s.replace(/\[.*?\]/, '').split(' or ')[0];
+
+            if (url) {
+              subtitles.push({
+                label: nam[1],
+                url: url
+              });
+            }
+          }
+        });
+        return subtitles.length ? subtitles : false;
+      }
       /**
        * Получить данные о фильме
        * @param {String} str
@@ -843,6 +942,7 @@
         if (vod[0] == 'file') {
           var file = str.match("file\\|([^\\|]+)\\|");
           var found = [];
+          var subtiles = parseSubs(vod[2]);
 
           if (file) {
             str = file[1].replace(/\n/g, '');
@@ -856,6 +956,7 @@
                   quality: quality[1] + 'p',
                   voice: voice ? voice[1] : '',
                   stream: links[1].split(' or ')[0],
+                  subtitles: subtiles,
                   info: ''
                 });
               });
@@ -938,7 +1039,8 @@
               var first = {
                 url: file,
                 timeline: view,
-                title: element.season ? element.title : element.voice ? object.movie.title + ' / ' + element.title : element.title
+                title: element.season ? element.title : element.voice ? object.movie.title + ' / ' + element.title : element.title,
+                subtitles: element.subtitles
               };
               Lampa.Player.play(first);
 
@@ -947,7 +1049,8 @@
                   playlist.push({
                     title: elem.title,
                     url: getFile(elem),
-                    timeline: elem.timeline
+                    timeline: elem.timeline,
+                    subtitles: element.subtitles
                   });
                 });
               } else {
@@ -1335,7 +1438,7 @@
       Lampa.Template.add('online_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0441 pastebin\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>\u041E\u043D\u043B\u0430\u0439\u043D</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0441 pastebin v1.26\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>\u041E\u043D\u043B\u0430\u0439\u043D</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online', component); //то же самое
 
