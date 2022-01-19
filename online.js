@@ -647,7 +647,7 @@
         var arr = data.replace("#h", "").split("//_//");
         var trashString = arr.join('');
         trashCodesSet.forEach(function (i) {
-          trashString = trashString.replaceAll(btoa(i), '');
+          trashString = trashString.replace(new RegExp(btoa(i), 'g'), '');
         });
         return atob(trashString.substr(2));
       }
