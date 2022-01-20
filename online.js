@@ -1419,7 +1419,9 @@
         url = Lampa.Utils.addUrlComponent(url, 'query=' + encodeURIComponent(query));
         url = Lampa.Utils.addUrlComponent(url, 'field=global');
         network.clear();
-        network.silent(url, function (json) {
+        network.timeout(1000 * 15);
+
+        var display = function display(json) {
           if (object.movie.imdb_id) {
             var imdb = json.data.filter(function (elem) {
               return elem.imdb_id == object.movie.imdb_id;
@@ -1431,15 +1433,32 @@
             if (json.data.length == 1 || object.clarification) {
               _this2.extendChoice();
 
-              if (balanser == 'videocdn') sources[balanser].search(object, json.data);else sources[balanser].search(object, json.data[0].kinopoisk_id);
+              if (balanser == 'videocdn') sources[balanser].search(object, json.data);else sources[balanser].search(object, json.data[0].kinopoisk_id || json.data[0].filmId);
             } else {
               _this2.similars(json.data);
 
               _this2.loading(false);
             }
           } else _this2.empty('По запросу (' + query + ') нет результатов');
-        }, function (a, c) {
-          _this2.empty(network.errorDecode(a, c));
+        };
+
+        network.silent(url, display.bind(this), function (a, c) {
+          network.timeout(1000 * 15);
+
+          if (balanser !== 'videocdn') {
+            network.silent('https://kinopoiskapiunofficial.tech/api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(query), function (json) {
+              json.data = json.films;
+              display(json);
+            }, function (a, c) {
+              _this2.empty(network.errorDecode(a, c));
+            }, false, {
+              headers: {
+                'X-API-KEY': '2d55adfd-019d-4567-bbf7-67d503f61b5a'
+              }
+            });
+          } else {
+            _this2.empty(network.errorDecode(a, c));
+          }
         });
       };
 
@@ -1466,7 +1485,7 @@
 
         json.forEach(function (elem) {
           var year = elem.start_date || elem.year || '';
-          elem.title = elem.ru_title;
+          elem.title = elem.ru_title || elem.nameRu;
           elem.quality = year ? (year + '').slice(0, 4) : '----';
           elem.info = '';
           var item = Lampa.Template.get('online_folder', elem);
@@ -1480,7 +1499,7 @@
 
             _this3.extendChoice();
 
-            if (balanser == 'videocdn') sources[balanser].search(object, [elem]);else sources[balanser].search(object, elem.kinopoisk_id);
+            if (balanser == 'videocdn') sources[balanser].search(object, [elem]);else sources[balanser].search(object, elem.kinopoisk_id || elem.filmId);
           });
 
           _this3.append(item);
