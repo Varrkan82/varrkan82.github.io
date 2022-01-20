@@ -366,7 +366,7 @@
       }
     }
 
-    function create(component, _object) {
+    function rezka(component, _object) {
       var network = new Lampa.Reguest();
       var extract = {};
       var embed = 'https://voidboost.net/';
@@ -795,10 +795,10 @@
       /**
        * Поиск
        * @param {Object} _object
-       * @param {Array} _item
+       * @param {String} kinopoisk_id
        */
 
-      this.search = function (_object, _item) {
+      this.search = function (_object, kinopoisk_id) {
         object = _object;
         select_title = object.movie.title;
         var url = embed + "search?query=" + encodeURIComponent(cleanTitle(select_title));
@@ -896,12 +896,14 @@
           var season = parseInt(extract[choice.season].comment);
           playlist.forEach(function (serial) {
             var quality = serial.file.match(/\[(\d+)p\]/g).pop().replace(/\[|\]/g, '');
+            var voice = serial.file.match("{([^}]+)}");
             filtred.push({
               file: serial.file,
               title: serial.comment,
               quality: quality,
               season: isNaN(season) ? 1 : season,
-              info: ''
+              info: voice ? ' / ' + voice[1] : '',
+              subtitles: parseSubs(serial.subtitle || '')
             });
           });
         } else {
@@ -957,7 +959,7 @@
                   voice: voice ? voice[1] : '',
                   stream: links[1].split(' or ')[0],
                   subtitles: subtiles,
-                  info: ''
+                  info: ' '
                 });
               });
             });
@@ -1006,14 +1008,19 @@
 
       function getFile(element) {
         if (element.stream) return element.stream;
-        var link = element.file.match("2160p](.*?) or");
-        if (!link) link = element.file.match("1440p](.*?) or");
-        if (!link) link = element.file.match("1080p](.*?) or");
-        if (!link) link = element.file.match("720p](.*?) or");
-        if (!link) link = element.file.match("480p](.*?) or");
-        if (!link) link = element.file.match("360p](.*?) or");
-        if (!link) link = element.file.match("240p](.*?) or");
-        if (link) return link[1];
+        var quality = {},
+            first = '';
+        element.file.split(',').reverse().forEach(function (file) {
+          var q = file.match("\\[(\\d+)p");
+
+          if (q) {
+            quality[q[1] + 'p'] = file.replace(/\[\d+p\]/, '').replace(/{([^}]+)}/, '').split(' or ')[0];
+            if (!first || q[1] == '1080') first = quality[q[1] + 'p'];
+          }
+        });
+        element.stream = first;
+        element.quality = quality;
+        return element.stream;
       }
       /**
        * Показать файлы
@@ -1032,12 +1039,230 @@
           item.append(Lampa.Timeline.render(view));
           item.on('hover:enter', function () {
             if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
-            var file = getFile(element);
+            getFile(element);
 
-            if (file) {
+            if (element.stream) {
               var playlist = [];
               var first = {
-                url: file,
+                url: element.stream,
+                timeline: view,
+                title: element.season ? element.title : element.voice ? object.movie.title + ' / ' + element.title : element.title,
+                subtitles: element.subtitles,
+                quality: element.quality
+              };
+              Lampa.Player.play(first);
+
+              if (element.season) {
+                items.forEach(function (elem) {
+                  getFile(elem);
+                  playlist.push({
+                    title: elem.title,
+                    url: elem.stream,
+                    timeline: elem.timeline,
+                    subtitles: elem.subtitles,
+                    quality: elem.quality
+                  });
+                });
+              } else {
+                playlist.push(first);
+              }
+
+              Lampa.Player.playlist(playlist);
+            } else Lampa.Noty.show('Не удалось извлечь ссылку');
+          });
+          component.append(item);
+        });
+        component.start(true);
+      }
+    }
+
+    function collaps(component, _object) {
+      var network = new Lampa.Reguest();
+      var extract = {};
+      var embed = 'https://api.delivembd.ws/embed/';
+      var object = _object;
+      var select_title = '';
+      var select_id = '';
+      var filter_items = {};
+      var choice = {
+        season: 0,
+        voice: 0
+      };
+      /**
+       * Поиск
+       * @param {Object} _object 
+       */
+
+      this.search = function (_object, kinopoisk_id) {
+        object = _object;
+        select_id = kinopoisk_id;
+        select_title = object.movie.title;
+        var url = embed + 'kp/' + kinopoisk_id;
+        network.silent(url, function (str) {
+          if (str) {
+            parse(str);
+          } else component.empty("Не нашли " + select_title);
+
+          component.loading(false);
+        }, function () {
+          component.empty();
+        }, false, {
+          dataType: 'text'
+        });
+      };
+
+      this.extendChoice = function (saved) {
+        Lampa.Arrays.extend(choice, saved, true);
+      };
+      /**
+       * Сброс фильтра
+       */
+
+
+      this.reset = function () {
+        component.reset();
+        choice = {
+          season: 0,
+          voice: 0
+        };
+        component.loading(true);
+        getFilm(select_id);
+        component.saveChoice(choice);
+      };
+      /**
+       * Применить фильтр
+       * @param {*} type 
+       * @param {*} a 
+       * @param {*} b 
+       */
+
+
+      this.filter = function (type, a, b) {
+        choice[a.stype] = b.index;
+        component.reset();
+        filter();
+        append(filtred());
+        component.saveChoice(choice);
+      };
+      /**
+       * Уничтожить
+       */
+
+
+      this.destroy = function () {
+        network.clear();
+        extract = null;
+      };
+
+      function parse(str) {
+        str = str.replace(/\n/g, '');
+        var find = str.match('makePlayer\\({(.*?)}\\);');
+
+        if (find) {
+          var json;
+
+          try {
+            json = eval('({' + find[1] + '})');
+          } catch (e) {}
+
+          if (json) {
+            extract = json;
+            console.log(extract);
+            filter();
+            append(filtred());
+          } else component.empty("Не нашли " + select_title);
+        }
+      }
+      /**
+       * Построить фильтр
+       */
+
+
+      function filter() {
+        filter_items = {
+          season: [],
+          voice: [],
+          quality: []
+        };
+
+        if (extract.playlist) {
+          if (extract.playlist.seasons) {
+            extract.playlist.seasons.forEach(function (season) {
+              filter_items.season.push('Сезон ' + season.season);
+            });
+          }
+        }
+
+        component.filter(filter_items, choice);
+      }
+      /**
+       * Отфильтровать файлы
+       * @returns array
+       */
+
+
+      function filtred() {
+        var filtred = [];
+        var filter_data = Lampa.Storage.get('online_filter', '{}');
+
+        if (extract.playlist) {
+          extract.playlist.seasons.forEach(function (season, i) {
+            if (i == filter_data.season) {
+              season.episodes.forEach(function (episode) {
+                filtred.push({
+                  file: episode.hls,
+                  episode: parseInt(episode.episode),
+                  season: season.season,
+                  title: episode.title,
+                  quality: '',
+                  info: episode.audio.names.slice(0, 5).join(', '),
+                  subtitles: episode.cc ? episode.cc.map(function (c) {
+                    return {
+                      label: c.name,
+                      url: c.url
+                    };
+                  }) : false
+                });
+              });
+            }
+          });
+        } else if (extract.source) {
+          filtred.push({
+            file: extract.source.hls,
+            title: extract.title,
+            quality: '',
+            info: extract.source.audio.names.slice(0, 5).join(', '),
+            subtitles: extract.source.cc ? extract.source.cc.map(function (c) {
+              return {
+                label: c.name,
+                url: c.url
+              };
+            }) : false
+          });
+        }
+
+        return filtred;
+      }
+      /**
+       * Показать файлы
+       */
+
+
+      function append(items) {
+        component.reset();
+        items.forEach(function (element) {
+          var hash = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title].join('') : object.movie.original_title);
+          var view = Lampa.Timeline.view(hash);
+          var item = Lampa.Template.get('online', element);
+          element.timeline = view;
+          item.append(Lampa.Timeline.render(view));
+          item.on('hover:enter', function () {
+            if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
+
+            if (element.file) {
+              var playlist = [];
+              var first = {
+                url: element.file,
                 timeline: view,
                 title: element.season ? element.title : element.voice ? object.movie.title + ' / ' + element.title : element.title,
                 subtitles: element.subtitles
@@ -1048,9 +1273,9 @@
                 items.forEach(function (elem) {
                   playlist.push({
                     title: elem.title,
-                    url: getFile(elem),
+                    url: elem.file,
                     timeline: elem.timeline,
-                    subtitles: element.subtitles
+                    subtitles: elem.subtitles
                   });
                 });
               } else {
@@ -1077,8 +1302,9 @@
       var balanser = Lampa.Storage.get('online_balanser', 'videocdn');
       var sources = {
         videocdn: new videocdn(this, object),
-        rezka: new create(this, object),
-        kinobase: new kinobase(this, object)
+        rezka: new rezka(this, object),
+        kinobase: new kinobase(this, object),
+        collaps: new collaps(this, object)
       };
       var last;
       var last_filter;
@@ -1089,7 +1315,7 @@
         voice: 'Перевод',
         source: 'Источник'
       };
-      var filter_sources = ['videocdn', 'rezka', 'kinobase']; // шаловливые ручки
+      var filter_sources = ['videocdn', 'rezka', 'kinobase', 'collaps']; // шаловливые ручки
 
       if (filter_sources.indexOf(balanser) == -1) {
         balanser = 'videocdn';
@@ -1430,6 +1656,7 @@
         sources.videocdn.destroy();
         sources.rezka.destroy();
         sources.kinobase.destroy();
+        sources.collaps.destroy();
       };
     }
 
@@ -1438,7 +1665,7 @@
       Lampa.Template.add('online_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0441 pastebin v1.26\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>\u041E\u043D\u043B\u0430\u0439\u043D</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0441 pastebin v1.32\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>\u041E\u043D\u043B\u0430\u0439\u043D</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online', component); //то же самое
 
