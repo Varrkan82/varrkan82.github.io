@@ -579,13 +579,13 @@
             video = video.slice(1).split(/,\[/).map(function (s) {
               return s.split(']')[0] + ']' + (s.indexOf(' or ') > -1 ? s.split('or').pop().trim() : s.split(']').pop());
             }).join('[');
-            element.quality = {};
+            element.qualitys = {};
             mass.forEach(function (n) {
               var link = video.match(new RegExp(n + "](.*?)mp4"));
 
               if (link) {
                 if (!first) first = link[1] + 'mp4';
-                element.quality[n] = link[1] + 'mp4';
+                element.qualitys[n] = link[1] + 'mp4';
 
                 if (n.indexOf('1080') >= 0) {
                   p1080 = link[1] + 'mp4';
@@ -593,7 +593,7 @@
                 }
               }
             });
-            if (!first) element.quality = false;
+            if (!first) element.qualitys = false;
 
             if (first) {
               element.stream = p1080 || first;
@@ -649,7 +649,13 @@
         trashCodesSet.forEach(function (i) {
           trashString = trashString.replace(new RegExp(btoa(i), 'g'), '');
         });
-        return atob(trashString.substr(2));
+        var result = '';
+
+        try {
+          result = atob(trashString.substr(2));
+        } catch (e) {}
+
+        return result;
       }
       /*
       function decode(x){
@@ -763,7 +769,7 @@
               var first = {
                 url: stream,
                 timeline: view,
-                quality: element.quality,
+                quality: element.qualitys,
                 title: element.title
               };
               Lampa.Player.play(first);
@@ -917,7 +923,6 @@
         var subtitles = [];
         vod.split(',').forEach(function (s) {
           var nam = s.match("\\[(.*?)]");
-          console.log(s);
 
           if (nam) {
             var url = s.replace(/\[.*?\]/, '').split(' or ')[0];
@@ -1019,7 +1024,7 @@
           }
         });
         element.stream = first;
-        element.quality = quality;
+        element.qualitys = quality;
         return element.stream;
       }
       /**
@@ -1048,7 +1053,7 @@
                 timeline: view,
                 title: element.season ? element.title : element.voice ? object.movie.title + ' / ' + element.title : element.title,
                 subtitles: element.subtitles,
-                quality: element.quality
+                quality: element.qualitys
               };
               Lampa.Player.play(first);
 
@@ -1060,7 +1065,7 @@
                     url: elem.stream,
                     timeline: elem.timeline,
                     subtitles: elem.subtitles,
-                    quality: elem.quality
+                    quality: elem.qualitys
                   });
                 });
               } else {
@@ -1167,7 +1172,6 @@
 
           if (json) {
             extract = json;
-            console.log(extract);
             filter();
             append(filtred());
           } else component.empty("Не нашли " + select_title);
