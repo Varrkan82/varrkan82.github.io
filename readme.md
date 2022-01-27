@@ -1,0 +1,1 @@
+[![Update NoAnime on schedule](https://github.com/Varrkan82/varrkan82.github.io/actions/workflows/noanime.yml/badge.svg)](https://github.com/Varrkan82/varrkan82.github.io/actions/workflows/noanime.yml)
