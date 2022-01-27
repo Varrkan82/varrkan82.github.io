@@ -1,4 +1,4 @@
-name: Update on schedule
+name: Update NoAnime on schedule
 # on: workflow_dispatch
 on:
   schedule:
@@ -9,10 +9,10 @@ jobs:
     name: Update resources
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch Nyam resources
+      - name: Fetch NoAnime resources
         run: wget http://llpp.xyz/ur/noanime.js -O noanime.js
 
-      - name: Update Nyam resources
+      - name: Update NoAnime resources
         uses: test-room-7/action-update-file@v1
         with:
             file-path: noanime.js
