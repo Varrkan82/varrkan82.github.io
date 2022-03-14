@@ -391,6 +391,12 @@
             } else Lampa.Noty.show('Не удалось извлечь ссылку');
           });
           component.append(item);
+          component.contextmenu({
+            item: item,
+            view: view,
+            viewed: viewed,
+            hash_file: hash_file
+          });
         });
         component.start(true);
       }
@@ -826,6 +832,12 @@
             });
           });
           component.append(item);
+          component.contextmenu({
+            item: item,
+            view: view,
+            viewed: viewed,
+            hash_file: hash_file
+          });
         });
         component.start(true);
       }
@@ -1138,6 +1150,12 @@
             } else Lampa.Noty.show('Не удалось извлечь ссылку');
           });
           component.append(item);
+          component.contextmenu({
+            item: item,
+            view: view,
+            viewed: viewed,
+            hash_file: hash_file
+          });
         });
         component.start(true);
       }
@@ -1369,6 +1387,12 @@
             } else Lampa.Noty.show('Не удалось извлечь ссылку');
           });
           component.append(item);
+          component.contextmenu({
+            item: item,
+            view: view,
+            viewed: viewed,
+            hash_file: hash_file
+          });
         });
         component.start(true);
       }
@@ -1696,6 +1720,70 @@
           scroll.update($(e.target), true);
         });
         scroll.append(item);
+      };
+      /**
+       * Меню
+       */
+
+
+      this.contextmenu = function (params) {
+        params.item.on('hover:long', function () {
+          var enabled = Lampa.Controller.enabled().name;
+          var menu = [{
+            title: 'Снять отметку',
+            clearmark: true
+          }, {
+            title: 'Сбросить таймкод',
+            timeclear: true
+          }];
+
+          if (Lampa.Platform.is('webos')) {
+            menu.push({
+              title: 'Запустить плеер - Webos',
+              player: 'webos'
+            });
+          }
+
+          if (Lampa.Platform.is('android')) {
+            menu.push({
+              title: 'Запустить плеер - Android',
+              player: 'android'
+            });
+          }
+
+          menu.push({
+            title: 'Запустить плеер - Lampa',
+            player: 'lampa'
+          });
+          Lampa.Select.show({
+            title: 'Действие',
+            items: menu,
+            onBack: function onBack() {
+              Lampa.Controller.toggle(enabled);
+            },
+            onSelect: function onSelect(a) {
+              if (a.clearmark) {
+                Lampa.Arrays.remove(params.viewed, params.hash_file);
+                Lampa.Storage.set('online_view', params.viewed);
+                params.item.find('.torrent-item__viewed').remove();
+              }
+
+              if (a.timeclear) {
+                params.view.percent = 0;
+                params.view.time = 0;
+                params.view.duration = 0;
+                Lampa.Timeline.update(params.view);
+              }
+
+              Lampa.Controller.toggle(enabled);
+
+              if (a.player) {
+                Lampa.Player.runas(a.player);
+                params.item.trigger('hover:enter');
+              }
+            }
+          });
+        });
       };
       /**
        * Показать пустой результат
