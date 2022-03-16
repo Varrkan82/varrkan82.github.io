@@ -1312,7 +1312,7 @@
           });
         } else if (extract.source) {
           var resolution = Lampa.Arrays.getKeys(extract.qualityByWidth).pop();
-          var max_quality = extract.qualityByWidth[resolution] || 0;
+          var max_quality = extract.qualityByWidth ? extract.qualityByWidth[resolution] || 0 : 0;
           filtred.push({
             file: extract.source.hls,
             title: extract.title,
