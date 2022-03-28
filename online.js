@@ -1,4 +1,4 @@
-//24.03.2022
+//28.03.2022
 
 (function () {
     'use strict';
@@ -28,7 +28,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
         url = Lampa.Utils.addUrlComponent(url, itm.imdb_id ? 'imdb_id=' + encodeURIComponent(itm.imdb_id) : 'title=' + encodeURIComponent(itm.title));
         url = Lampa.Utils.addUrlComponent(url, 'field=' + encodeURIComponent('global'));
-        network.silent(url, function (found) {
+        network["native"](url, function (found) {
           results = found.data.filter(function (elem) {
             return elem.id == itm.id;
           });
@@ -868,7 +868,7 @@
         object = _object;
         select_title = object.movie.title;
         var url = embed + "search?query=" + encodeURIComponent(cleanTitle(select_title));
-        network.silent(url, function (str) {
+        network["native"](url, function (str) {
           str = str.replace(/\n/, '');
           var links = object.movie.number_of_seasons ? str.match(/<a href="\/serial\/(.*?)">(.*?)<\/a>/g) : str.match(/<a href="\/film\/(.*?)" class="link"[^>]+>(.*?)<\/a>/g);
           var relise = object.search_date || (object.movie.number_of_seasons ? object.movie.first_air_date : object.movie.release_date);
@@ -1039,7 +1039,7 @@
       function getPage(url) {
         network.clear();
         network.timeout(1000 * 10);
-        network.silent(embed + url, function (str) {
+        network["native"](embed + url, function (str) {
           str = str.replace(/\n/g, '');
           var MOVIE_ID = str.match('var MOVIE_ID = ([^;]+);');
           var VOD_HASH = str.match('var VOD_HASH = "([^"]+)"');
@@ -1054,7 +1054,7 @@
             file_url = Lampa.Utils.addUrlComponent(file_url, "e=" + vod_time);
             network.clear();
             network.timeout(1000 * 10);
-            network.silent(embed + file_url, function (files) {
+            network["native"](embed + file_url, function (files) {
               component.loading(false);
               extractData(files, str);
               filter();
@@ -1532,7 +1532,7 @@
           network.timeout(1000 * 15);
 
           if (balanser !== 'videocdn') {
-            network.silent('https://kinopoiskapiunofficial.tech/api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(query), function (json) {
+            network["native"]('https://kinopoiskapiunofficial.tech/api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(query), function (json) {
               json.data = json.films;
               display(json);
             }, function (a, c) {
@@ -1550,9 +1550,9 @@
         var letgo = function letgo(imdb_id) {
           var url_end = Lampa.Utils.addUrlComponent(url, imdb_id ? 'imdb_id=' + encodeURIComponent(imdb_id) : 'title=' + encodeURIComponent(query));
           network.timeout(1000 * 15);
-          network.silent(url_end, function (json) {
+          network["native"](url_end, function (json) {
             if (json.data && json.data.length) display(json);else {
-              network.silent(Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(query)), display.bind(_this2), pillow.bind(_this2));
+              network["native"](Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(query)), display.bind(_this2), pillow.bind(_this2));
             }
           }, pillow.bind(_this2));
         };
@@ -1563,7 +1563,7 @@
         if (object.movie.imdb_id) {
           letgo(object.movie.imdb_id);
         } else if (object.movie.source == 'tmdb' || object.movie.source == 'cub') {
-          network.silent('http://api.themoviedb.org/3/' + (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru', function (ttid) {
+          network["native"]('http://api.themoviedb.org/3/' + (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru', function (ttid) {
             letgo(ttid.imdb_id);
           }, function (a, c) {
             _this2.empty(network.errorDecode(a, c));
@@ -1874,7 +1874,7 @@
       Lampa.Template.add('online_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0441 pastebin v1.43\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>\u041E\u043D\u043B\u0430\u0439\u043D</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0441 pastebin v1.45\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>\u041E\u043D\u043B\u0430\u0439\u043D</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online', component); //то же самое
 
