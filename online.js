@@ -1,4 +1,4 @@
-//28.03.2022
+//29.03.2022 - fix kinobbase episodes
 
 (function () {
     'use strict';
@@ -1096,9 +1096,10 @@
       function append(items) {
         component.reset();
         var viewed = Lampa.Storage.cache('online_view', 5000, []);
-        items.forEach(function (element) {
+        items.forEach(function (element, index) {
           if (element.season) element.title = 'S' + element.season + ' / ' + element.title;
           if (element.voice) element.title = element.voice;
+          if (typeof element.episode == 'undefined') element.episode = index + 1;
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
           var item = Lampa.Template.get('online', element);
