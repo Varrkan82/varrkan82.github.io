@@ -13,7 +13,7 @@ jobs:
         run: wget http://vi.sisi.am/epr -O epr
 
       - name: Move file
-        run: ls -la && mv epr ch/epr
+        run: ls -la # && mv epr ch/epr
 
       - name: Update Epr resources
         uses: test-room-7/action-update-file@v1
