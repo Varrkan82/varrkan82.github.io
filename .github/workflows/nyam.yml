@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Nyam resources
-        run: wget ${{ secrets.NYAM_PLUGIN_URL }} -O nyam.js
+        run: wget ${{ secrets.NYAM_PLUGIN_URL }} -O nyam.js \
+             sed -i 's/http\:\/\/vi\.sisi\.am/ch/g' nyam.js
 
       - name: Update Nyam resources
         uses: test-room-7/action-update-file@v1
