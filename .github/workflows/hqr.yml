@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Hqr resources
-        run: wget http://vi.sisi.am/hqr -O ch/hqr
+        run: wget http://vi.sisi.am/hqr -O hqr \\
+             && mv hqr ch/hqr
 
       - name: Update Hqr resources
         uses: test-room-7/action-update-file@v1
