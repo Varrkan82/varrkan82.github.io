@@ -15,9 +15,9 @@ jobs:
       - name: Move file
         run: ls -la # && mv epr ch/epr
 
-      - name: Update Epr resources
-        uses: test-room-7/action-update-file@v1
-        with:
-            file-path: ch/epr
-            commit-msg: Update resources
-            github-token: ${{ secrets.GITHUB_TOKEN }}
+     # - name: Update Epr resources
+     #   uses: test-room-7/action-update-file@v1
+     #   with:
+     #       file-path: ch/epr
+     #       commit-msg: Update resources
+     #       github-token: ${{ secrets.GITHUB_TOKEN }}
