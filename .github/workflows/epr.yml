@@ -10,8 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Epr resources
-        run: wget http://vi.sisi.am/epr -O epr \
-             && mv epr ch/epr
+        run: wget http://vi.sisi.am/epr -O epr
+
+      - name: Move file
+        run: mv epr ch/epr
 
       - name: Update Epr resources
         uses: test-room-7/action-update-file@v1
