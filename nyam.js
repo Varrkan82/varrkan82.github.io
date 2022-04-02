@@ -143,34 +143,34 @@
       Lampa.Component.add('sisi', Sisi);
       var catalogs = [{
         title: 'eporner.com',
-        url: 'http://vi.sisi.am/epr'
+        url: './ch/epr'
       }, {
         title: 'spankbang.com',
-        url: 'http://vi.sisi.am/sbg'
+        url: './ch/sbg'
       }, {
         title: 'xhamster.com',
-        url: 'http://vi.sisi.am/xmr'
+        url: './ch/xmr'
       }, {
         title: 'porntrex.com',
-        url: 'http://vi.sisi.am/ptx'
+        url: './ch/ptx'
       }, {
         title: 'hqporner.com',
-        url: 'http://vi.sisi.am/hqr'
+        url: './ch/hqr'
       }, {
         title: 'xvideos.com',
-        url: 'http://vi.sisi.am/xds'
+        url: './ch/xds'
       }, {
         title: 'xnxx.com',
-        url: 'http://vi.sisi.am/xnx'
+        url: './ch/xnx'
       }, {
         title: 'ebalovo.porn',
-        url: 'http://vi.sisi.am/elo'
+        url: './ch/elo'
       }, {
         title: 'bongacams.com',
-        url: 'http://vi.sisi.am/bgs'
+        url: './ch/bgs'
       }, {
         title: 'chaturbate.com',
-        url: 'http://vi.sisi.am/chu'
+        url: './ch/chu'
       }];
       Lampa.Listener.follow('app', function (e) {
         if (e.type == 'ready') {
