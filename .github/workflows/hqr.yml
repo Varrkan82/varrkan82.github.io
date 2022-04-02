@@ -1,0 +1,20 @@
+name: Update Nyam on schedule
+# on: workflow_dispatch
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '*/30 * * * *'
+jobs:
+  resources:
+    name: Update resources
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Hqr resources
+        run: wget http://vi.sisi.am/hqr -O ch/hqr
+
+      - name: Update Hqr resources
+        uses: test-room-7/action-update-file@v1
+        with:
+            file-path: ch/hqr
+            commit-msg: Update resources
+            github-token: ${{ secrets.GITHUB_TOKEN }}
