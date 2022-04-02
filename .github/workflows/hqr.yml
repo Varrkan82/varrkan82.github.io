@@ -1,4 +1,4 @@
-name: Update Nyam on schedule
+name: Update Hqr on schedule
 # on: workflow_dispatch
 on:
   schedule:
