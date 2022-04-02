@@ -9,15 +9,15 @@ jobs:
     name: Update resources
     runs-on: ubuntu-latest
     steps:
+      - name: Mkdir
+        run: mkdir ch
+
       - name: Fetch Epr resources
-        run: wget http://vi.sisi.am/epr -O epr
+        run: wget http://vi.sisi.am/epr -O ch/epr
 
-      - name: Move file
-        run: ls -la # && mv epr ch/epr
-
-     # - name: Update Epr resources
-     #   uses: test-room-7/action-update-file@v1
-     #   with:
-     #       file-path: ch/epr
-     #       commit-msg: Update resources
-     #       github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update Epr resources
+        uses: test-room-7/action-update-file@v1
+        with:
+            file-path: ch/epr
+            commit-msg: Update resources
+            github-token: ${{ secrets.GITHUB_TOKEN }}
