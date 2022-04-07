@@ -1,4 +1,4 @@
-//29.03.2022 - fix kinobbase episodes
+//07.04.2022 - fix videocdn for android
 
 (function () {
     'use strict';
