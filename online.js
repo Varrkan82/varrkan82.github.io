@@ -1,4 +1,4 @@
-//07.04.2022 - fix videocdn for android
+//09.04.2022 - fix tmdb
 
 (function () {
     'use strict';
@@ -1564,7 +1564,7 @@
         if (object.movie.imdb_id) {
           letgo(object.movie.imdb_id);
         } else if (object.movie.source == 'tmdb' || object.movie.source == 'cub') {
-          network["native"]('http://api.themoviedb.org/3/' + (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru', function (ttid) {
+          network["native"]('http://apitm.lkf0x.ru/3/' + (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru', function (ttid) {
             letgo(ttid.imdb_id);
           }, function (a, c) {
             _this2.empty(network.errorDecode(a, c));
