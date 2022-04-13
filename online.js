@@ -20,7 +20,8 @@
 
       this.search = function (_object, data) {
         object = _object;
-        var url = 'http://proxy.cub.watch/cdn/' + 'https://videocdn.tv/api/';
+        var prox = Lampa.Platform.is('webos') || Lampa.Platform.is('tizen') ? '' : 'http://proxy.cub.watch/cdn/';
+        var url = prox + 'https://videocdn.tv/api/';
         var itm = data[0];
         var type = itm.iframe_src.split('/').slice(-2)[0];
         if (type == 'movie') type = 'movies';
@@ -1504,7 +1505,8 @@
       this.find = function () {
         var _this2 = this;
 
-        var url = 'http://proxy.cub.watch/cdn/' + 'https://videocdn.tv/api/short';
+        var prox = Lampa.Platform.is('webos') || Lampa.Platform.is('tizen') ? '' : 'http://proxy.cub.watch/cdn/';
+        var url = prox + 'https://videocdn.tv/api/short';
         var query = object.search;
         url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
 
