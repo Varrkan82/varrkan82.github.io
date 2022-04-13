@@ -1,4 +1,4 @@
-//10.04.2022 - fix tmdb
+//13.04.2022 - Add proxy
 
 (function () {
     'use strict';
@@ -20,7 +20,7 @@
 
       this.search = function (_object, data) {
         object = _object;
-        var url = 'https://videocdn.tv/api/';
+        var url = 'http://proxy.cub.watch/cdn/' + 'https://videocdn.tv/api/';
         var itm = data[0];
         var type = itm.iframe_src.split('/').slice(-2)[0];
         if (type == 'movie') type = 'movies';
@@ -28,7 +28,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
         url = Lampa.Utils.addUrlComponent(url, itm.imdb_id ? 'imdb_id=' + encodeURIComponent(itm.imdb_id) : 'title=' + encodeURIComponent(itm.title));
         url = Lampa.Utils.addUrlComponent(url, 'field=' + encodeURIComponent('global'));
-        network["native"](url, function (found) {
+        network.silent(url, function (found) {
           results = found.data.filter(function (elem) {
             return elem.id == itm.id;
           });
@@ -1504,7 +1504,7 @@
       this.find = function () {
         var _this2 = this;
 
-        var url = 'https://videocdn.tv/api/short';
+        var url = 'http://proxy.cub.watch/cdn/' + 'https://videocdn.tv/api/short';
         var query = object.search;
         url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
 
@@ -1551,9 +1551,9 @@
         var letgo = function letgo(imdb_id) {
           var url_end = Lampa.Utils.addUrlComponent(url, imdb_id ? 'imdb_id=' + encodeURIComponent(imdb_id) : 'title=' + encodeURIComponent(query));
           network.timeout(1000 * 15);
-          network["native"](url_end, function (json) {
+          network.silent(url_end, function (json) {
             if (json.data && json.data.length) display(json);else {
-              network["native"](Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(query)), display.bind(_this2), pillow.bind(_this2));
+              network.silent(Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(query)), display.bind(_this2), pillow.bind(_this2));
             }
           }, pillow.bind(_this2));
         };
@@ -1564,7 +1564,7 @@
         if (object.movie.imdb_id) {
           letgo(object.movie.imdb_id);
         } else if (object.movie.source == 'tmdb' || object.movie.source == 'cub') {
-          network["native"]('http://apitm.kulik.uz/3/' + (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru', function (ttid) {
+          network.silent('http://apitmdb.cub.watch/3/' + (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru', function (ttid) {
             letgo(ttid.imdb_id);
           }, function (a, c) {
             _this2.empty(network.errorDecode(a, c));
