@@ -1,4 +1,4 @@
-//13.04.2022 - Add proxy
+//14.04.2022 - Add proxy swith
 
 (function () {
     'use strict';
@@ -20,7 +20,7 @@
 
       this.search = function (_object, data) {
         object = _object;
-        var prox = Lampa.Platform.is('webos') || Lampa.Platform.is('tizen') ? '' : 'http://proxy.cub.watch/cdn/';
+        var prox = Lampa.Platform.is('webos') || Lampa.Platform.is('tizen') || Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
         var url = prox + 'https://videocdn.tv/api/';
         var itm = data[0];
         var type = itm.iframe_src.split('/').slice(-2)[0];
@@ -1505,7 +1505,7 @@
       this.find = function () {
         var _this2 = this;
 
-        var prox = Lampa.Platform.is('webos') || Lampa.Platform.is('tizen') ? '' : 'http://proxy.cub.watch/cdn/';
+        var prox = Lampa.Platform.is('webos') || Lampa.Platform.is('tizen') || Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
         var url = prox + 'https://videocdn.tv/api/short';
         var query = object.search;
         url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
@@ -1566,7 +1566,7 @@
         if (object.movie.imdb_id) {
           letgo(object.movie.imdb_id);
         } else if (object.movie.source == 'tmdb' || object.movie.source == 'cub') {
-          network.silent('http://apitmdb.cub.watch/3/' + (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru', function (ttid) {
+          network.silent('http://' + (Lampa.Storage.field('proxy_tmdb') === false ? 'api.themoviedb.org' : 'apitmdb.cub.watch') + '/3/' + (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru', function (ttid) {
             letgo(ttid.imdb_id);
           }, function (a, c) {
             _this2.empty(network.errorDecode(a, c));
