@@ -1,4 +1,4 @@
-//14.04.2022 - Add proxy swith
+//15.04.2022 - Fix (clear filter)
 
 (function () {
     'use strict';
@@ -1171,7 +1171,6 @@
       var embed = 'https://api.delivembd.ws/embed/';
       var object = _object;
       var select_title = '';
-      var select_id = '';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -1184,7 +1183,6 @@
 
       this.search = function (_object, kinopoisk_id) {
         object = _object;
-        select_id = kinopoisk_id;
         select_title = object.movie.title;
         var url = embed + 'kp/' + kinopoisk_id;
         network.silent(url, function (str) {
@@ -1214,8 +1212,8 @@
           season: 0,
           voice: 0
         };
-        component.loading(true);
-        getFilm(select_id);
+        filter();
+        append(filtred());
         component.saveChoice(choice);
       };
       /**
@@ -1553,9 +1551,9 @@
         var letgo = function letgo(imdb_id) {
           var url_end = Lampa.Utils.addUrlComponent(url, imdb_id ? 'imdb_id=' + encodeURIComponent(imdb_id) : 'title=' + encodeURIComponent(query));
           network.timeout(1000 * 15);
-          network.silent(url_end, function (json) {
+          network["native"](url_end, function (json) {
             if (json.data && json.data.length) display(json);else {
-              network.silent(Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(query)), display.bind(_this2), pillow.bind(_this2));
+              network["native"](Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(query)), display.bind(_this2), pillow.bind(_this2));
             }
           }, pillow.bind(_this2));
         };
@@ -1566,7 +1564,7 @@
         if (object.movie.imdb_id) {
           letgo(object.movie.imdb_id);
         } else if (object.movie.source == 'tmdb' || object.movie.source == 'cub') {
-          network.silent('http://' + (Lampa.Storage.field('proxy_tmdb') === false ? 'api.themoviedb.org' : 'apitmdb.cub.watch') + '/3/' + (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru', function (ttid) {
+          network["native"]('http://' + (Lampa.Storage.field('proxy_tmdb') === false ? 'api.themoviedb.org' : 'apitmdb.cub.watch') + '/3/' + (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru', function (ttid) {
             letgo(ttid.imdb_id);
           }, function (a, c) {
             _this2.empty(network.errorDecode(a, c));
