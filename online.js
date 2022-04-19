@@ -1,4 +1,4 @@
-//15.04.2022 - Fix (clear filter)
+//15.04.2022 - Add proxy for tv
 
 (function () {
     'use strict';
@@ -20,7 +20,7 @@
 
       this.search = function (_object, data) {
         object = _object;
-        var prox = Lampa.Platform.is('webos') || Lampa.Platform.is('tizen') || Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
+        var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
         var url = prox + 'https://videocdn.tv/api/';
         var itm = data[0];
         var type = itm.iframe_src.split('/').slice(-2)[0];
@@ -1503,7 +1503,7 @@
       this.find = function () {
         var _this2 = this;
 
-        var prox = Lampa.Platform.is('webos') || Lampa.Platform.is('tizen') || Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
+        var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
         var url = prox + 'https://videocdn.tv/api/short';
         var query = object.search;
         url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
