@@ -1,4 +1,4 @@
-//15.04.2022 - Add proxy for tv
+//21.04.2022 - Fix title undefined
 
 (function () {
     'use strict';
@@ -1597,7 +1597,7 @@
 
         json.forEach(function (elem) {
           var year = elem.start_date || elem.year || '';
-          elem.title = elem.title || elem.ru_title || elem.nameRu;
+          elem.title = elem.title || elem.ru_title || elem.en_title || elem.nameRu || elem.nameEn;
           elem.quality = year ? (year + '').slice(0, 4) : '----';
           elem.info = '';
           var item = Lampa.Template.get('online_folder', elem);
