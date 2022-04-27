@@ -1,4 +1,4 @@
-//27.04.2022 - Fix filmix
+//27.04.2022 - Add default quality
 
 (function () {
     'use strict';
@@ -244,6 +244,8 @@
           mass.forEach(function (n) {
             quality[n + 'p'] = path + n + '.mp4';
           });
+          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+          if (quality[preferably]) file = quality[preferably];
         }
 
         return {
@@ -611,7 +613,7 @@
 
           if (videos) {
             var video = decode(videos[1]),
-                p1080 = '',
+                qused = '',
                 first = '',
                 mass = ['2160p', '1440p', '1080p Ultra', '1080p', '720p', '480p', '360p']; //ухня тут происходит, хрен знает почему после .join() возврошает только последнию ссылку
 
@@ -619,6 +621,7 @@
               return s.split(']')[0] + ']' + (s.indexOf(' or ') > -1 ? s.split('or').pop().trim() : s.split(']').pop());
             }).join('[');
             element.qualitys = {};
+            var preferably = Lampa.Storage.get('video_quality_default', '1080');
             mass.forEach(function (n) {
               var link = video.match(new RegExp(n + "](.*?)mp4"));
 
@@ -626,16 +629,16 @@
                 if (!first) first = link[1] + 'mp4';
                 element.qualitys[n] = link[1] + 'mp4';
 
-                if (n.indexOf('1080') >= 0) {
-                  p1080 = link[1] + 'mp4';
-                  first = p1080;
+                if (n.indexOf(preferably) >= 0) {
+                  qused = link[1] + 'mp4';
+                  first = qused;
                 }
               }
             });
             if (!first) element.qualitys = false;
 
             if (first) {
-              element.stream = p1080 || first;
+              element.stream = qused || first;
               element.subtitles = parseSubtitles(str);
               call(element.stream);
             } else error();
@@ -1074,15 +1077,15 @@
       }
 
       function getFile(element) {
-        if (element.stream) return element.stream;
         var quality = {},
             first = '';
+        var preferably = Lampa.Storage.get('video_quality_default', '1080');
         element.file.split(',').reverse().forEach(function (file) {
           var q = file.match("\\[(\\d+)p");
 
           if (q) {
             quality[q[1] + 'p'] = file.replace(/\[\d+p\]/, '').replace(/{([^}]+)}/, '').split(' or ')[0];
-            if (!first || q[1] == '1080') first = quality[q[1] + 'p'];
+            if (!first || q[1] == preferably) first = quality[q[1] + 'p'];
           }
         });
         element.stream = first;
@@ -1554,6 +1557,8 @@
         mass.forEach(function (n) {
           quality[n + 'p'] = path + n + '.mp4';
         });
+        var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+        if (quality[preferably]) file = quality[preferably];
         return {
           file: file,
           quality: quality
@@ -1978,6 +1983,8 @@
           mass.forEach(function (n) {
             quality[n + 'p'] = link + n + '.mp4';
           });
+          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+          if (quality[preferably]) file = quality[preferably];
         }
 
         return {
