@@ -1,4 +1,4 @@
-//24.04.2022 - Add filmix
+//27.04.2022 - Fix filmix
 
 (function () {
     'use strict';
@@ -1404,9 +1404,10 @@
       var network = new Lampa.Reguest();
       var extract = {};
       var object = _object;
-      var select_title = '';
-      var cors = 'https://cors.eu.org/';
-      var embed = cors + 'https://cdnmovies.net/api/short';
+      var select_title = ''; //let cors  = 'https://cors.eu.org/'
+
+      var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
+      var embed = prox + 'https://cdnmovies.net/api/short';
       var token = '60b340d7b5eef61f62b622b3c018843b';
       var filter_items = {};
       var choice = {
@@ -2663,7 +2664,7 @@
       }
     });
     Lampa.Listener.follow('app', function (e) {
-      if (e.type == 'ready' && Lampa.Settings.main) {
+      if (e.type == 'ready' && Lampa.Settings.main && !Lampa.Settings.main().render().find('[data-component="filmix"]').length) {
         var field = $("<div class=\"settings-folder selector\" data-component=\"filmix\">\n            <div class=\"settings-folder__icon\">\n                <svg height=\"44\" viewBox=\"0 0 27 44\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <path d=\"M0 10.1385V44H9.70312V29.0485H23.7656V19.2233H9.70312V15.6634C9.70312 11.8188 12.6562 9.39806 15.8906 9.39806H27V0H9.70312C5.20312 0 0 3.41748 0 10.1385Z\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"settings-folder__name\">Filmix</div>\n        </div>");
         Lampa.Settings.main().render().find('[data-component="more"]').after(field);
         Lampa.Settings.main().update();
@@ -2671,7 +2672,7 @@
     });
     Lampa.Settings.listener.follow('open', function (e) {
       if (e.name == 'filmix') {
-        e.body.find('[data-name="filmix_add"]').on('hover:enter', function () {
+        e.body.find('[data-name="filmix_add"]').unbind('hover:enter').on('hover:enter', function () {
           var user_code = '';
           var user_token = '';
           var modal = $('<div><div class="broadcast__text">Введите его на странице https://filmix.ac/consoles в вашем авторизованном аккаунте!</div><div class="broadcast__device selector" style="text-align: center">Ожидаем код...</div><br><div class="broadcast__scan"><div></div></div></div></div>');
@@ -2706,8 +2707,7 @@
             if (found.status == 'ok') {
               user_token = found.code;
               user_code = found.user_code;
-              modal.find('.selector').text(user_code);
-              modal.find('.broadcast__scan').remove();
+              modal.find('.selector').text(user_code); //modal.find('.broadcast__scan').remove()
             } else {
               Lampa.Noty.show(found);
             }
@@ -2734,7 +2734,7 @@
 
     function checkPro(token, call) {
       network.clear();
-      network.timeout(10000);
+      network.timeout(8000);
       network.silent(api_url + 'user_profile' + user_dev + token, function (json) {
         if (json) {
           if (json.user_data) {
