@@ -1,4 +1,4 @@
-//28.04.2022 - Fix filmix links
+//28.04.2022 - Fix kinobase
 
 (function () {
     'use strict';
@@ -879,7 +879,10 @@
        * @param {String} kinopoisk_id
        */
 
-      this.search = function (_object, kinopoisk_id) {
+      this.search = function (_object, kp_id, sim) {
+        var _this = this;
+
+        if (this.wait_similars && sim) return getPage(sim[0].link);
         object = _object;
         select_title = object.movie.title;
         var url = embed + "search?query=" + encodeURIComponent(cleanTitle(select_title));
@@ -896,7 +899,21 @@
                   titl = link.attr('title') || link.text();
               if (titl.indexOf(need_year) !== -1) found_url = link.attr('href');
             });
-            if (found_url) getPage(found_url);else component.empty("Не нашли подходящего для " + select_title);
+            if (found_url) getPage(found_url);else if (links.length) {
+              _this.wait_similars = true;
+              var similars = [];
+              links.forEach(function (l) {
+                var link = $(l),
+                    titl = link.attr('title') || link.text();
+                similars.push({
+                  title: titl,
+                  link: link.attr('href'),
+                  filmId: 'similars'
+                });
+              });
+              component.similars(similars);
+              component.loading(false);
+            } else component.empty("Не нашли подходящего для " + select_title);
           } else component.empty("Не нашли " + select_title);
         }, function () {
           component.empty();
@@ -988,6 +1005,13 @@
             });
           });
         } else {
+          extract.forEach(function (elem) {
+            var quality = elem.file.match(/\[(\d+)p\]/g).pop().replace(/\[|\]/g, '');
+            var voice = elem.file.match("{([^}]+)}");
+            if (!elem.title) elem.title = elem.comment || (voice ? voice[1] : 'Без названия');
+            if (!elem.quality) elem.quality = quality;
+            if (!elem.info) elem.info = '';
+          });
           filtred = extract;
         }
 
@@ -2321,7 +2345,7 @@
             if (json.data.length == 1 || object.clarification) {
               _this2.extendChoice();
 
-              if (balanser == 'videocdn' || balanser == 'filmix') sources[balanser].search(object, json.data);else sources[balanser].search(object, json.data[0].kp_id || json.data[0].filmId);
+              if (balanser == 'videocdn' || balanser == 'filmix') sources[balanser].search(object, json.data);else sources[balanser].search(object, json.data[0].kp_id || json.data[0].filmId, json.data);
             } else {
               _this2.similars(json.data);
 
@@ -2412,7 +2436,7 @@
 
             _this3.extendChoice();
 
-            if (balanser == 'videocdn' || balanser == 'filmix') sources[balanser].search(object, [elem]);else sources[balanser].search(object, elem.kp_id || elem.filmId);
+            if (balanser == 'videocdn' || balanser == 'filmix') sources[balanser].search(object, [elem]);else sources[balanser].search(object, elem.kp_id || elem.filmId, [elem]);
           });
 
           _this3.append(item);
