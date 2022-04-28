@@ -1,4 +1,4 @@
-//28.04.2022 - Copy video links
+//28.04.2022 - Fix filmix links
 
 (function () {
     'use strict';
@@ -2015,16 +2015,18 @@
 
         if (file) {
           var link = file.slice(0, file.lastIndexOf('_')) + '_';
+          var orin = file.split('?');
+          orin = orin.length > 1 ? '?' + orin.slice(1).join('?') : '';
 
           if (file.split('_').pop().replace('.mp4', '') !== max_quality) {
-            file = link + max_quality + '.mp4';
+            file = link + max_quality + '.mp4' + orin;
           }
 
           quality = {};
           var mass = [2160, 1440, 1080, 720, 480, 360];
           mass = mass.slice(mass.indexOf(max_quality));
           mass.forEach(function (n) {
-            quality[n + 'p'] = link + n + '.mp4';
+            quality[n + 'p'] = link + n + '.mp4' + orin;
           });
           var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
           if (quality[preferably]) file = quality[preferably];
