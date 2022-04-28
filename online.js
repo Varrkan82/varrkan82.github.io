@@ -1,4 +1,4 @@
-//27.04.2022 - Add default quality
+//28.04.2022 - Copy video links
 
 (function () {
     'use strict';
@@ -400,7 +400,10 @@
             item: item,
             view: view,
             viewed: viewed,
-            hash_file: hash_file
+            hash_file: hash_file,
+            file: function file(call) {
+              call(getFile(element, element.quality));
+            }
           });
         });
         component.start(true);
@@ -842,7 +845,15 @@
             item: item,
             view: view,
             viewed: viewed,
-            hash_file: hash_file
+            hash_file: hash_file,
+            file: function file(call) {
+              getStream(element, function (stream) {
+                call({
+                  file: stream,
+                  quality: element.qualitys
+                });
+              });
+            }
           });
         });
         component.start(true);
@@ -1024,6 +1035,7 @@
                 var voice = el2.match("{([^}]+)}");
                 var links = voice ? el2.match("}([^;]+)") : el2.match("\\]([^;]+)");
                 found.push({
+                  file: file[1],
                   title: object.movie.title,
                   quality: quality[1] + 'p' + (quality_type ? ' - ' + quality_type[1] : ''),
                   voice: voice ? voice[1] : '',
@@ -1090,7 +1102,10 @@
         });
         element.stream = first;
         element.qualitys = quality;
-        return element.stream;
+        return {
+          file: first,
+          quality: quality
+        };
       }
       /**
        * Показать файлы
@@ -1161,7 +1176,10 @@
             item: item,
             view: view,
             viewed: viewed,
-            hash_file: hash_file
+            hash_file: hash_file,
+            file: function file(call) {
+              call(getFile(element));
+            }
           });
         });
         component.start(true);
@@ -1396,7 +1414,12 @@
             item: item,
             view: view,
             viewed: viewed,
-            hash_file: hash_file
+            hash_file: hash_file,
+            file: function file(call) {
+              call({
+                file: element.file
+              });
+            }
           });
         });
         component.start(true);
@@ -1708,7 +1731,10 @@
             item: item,
             view: view,
             viewed: viewed,
-            hash_file: hash_file
+            hash_file: hash_file,
+            file: function file(call) {
+              call(getFile(element.file));
+            }
           });
         });
         component.start(true);
@@ -1745,18 +1771,35 @@
       this.search = function (_object, data) {
         var _this = this;
 
+        if (this.wait_similars) return this.find(data[0].id);
         object = _object;
         select_title = object.movie.title;
         var item = data[0];
-        var year = (object.movie.release_date || object.movie.first_air_date || '0000').slice(0, 4);
+        var year = parseInt((object.movie.release_date || object.movie.first_air_date || '0000').slice(0, 4));
+        var orig = object.movie.original_title || object.movie.original_name;
         var url = embed + 'suggest';
         url = Lampa.Utils.addUrlComponent(url, 'word=' + encodeURIComponent(item.title));
         network.clear();
         network.silent(url, function (json) {
-          var card = json.find(function (c) {
-            return c.alt_name.split('-').pop() == year;
+          var cards = json.filter(function (c) {
+            c.year = parseInt(c.alt_name.split('-').pop());
+            return c.year > year - 2 && c.year < year + 2;
           });
-          if (card) _this.find(card.id);else component.empty('По запросу (' + select_title + ') нет результатов');
+          var card = cards.find(function (c) {
+            return c.year == year;
+          });
+
+          if (!card) {
+            card = cards.find(function (c) {
+              return c.original_title == orig;
+            });
+          }
+
+          if (card) _this.find(card.id);else {
+            _this.wait_similars = true;
+            component.similars(json);
+            component.loading(false);
+          }
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         });
@@ -1786,7 +1829,7 @@
             if (found && Object.keys(found).length) {
               success(found);
               component.loading(false);
-            } else component.empty('По запросу нет результатов');
+            } else component.empty('По запросу (' + select_title + ') нет результатов');
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
           });
@@ -2144,7 +2187,10 @@
             item: item,
             view: view,
             viewed: viewed,
-            hash_file: hash_file
+            hash_file: hash_file,
+            file: function file(call) {
+              call(getFile(element, element.quality));
+            }
           });
         });
         component.start(true);
@@ -2484,72 +2530,118 @@
 
       this.contextmenu = function (params) {
         params.item.on('hover:long', function () {
-          var enabled = Lampa.Controller.enabled().name;
-          var menu = [{
-            title: 'Пометить',
-            mark: true
-          }, {
-            title: 'Снять отметку',
-            clearmark: true
-          }, {
-            title: 'Сбросить таймкод',
-            timeclear: true
-          }];
+          function show(extra) {
+            var enabled = Lampa.Controller.enabled().name;
+            var menu = [{
+              title: 'Пометить',
+              mark: true
+            }, {
+              title: 'Снять отметку',
+              clearmark: true
+            }, {
+              title: 'Сбросить таймкод',
+              timeclear: true
+            }];
 
-          if (Lampa.Platform.is('webos')) {
+            if (Lampa.Platform.is('webos')) {
+              menu.push({
+                title: 'Запустить плеер - Webos',
+                player: 'webos'
+              });
+            }
+
+            if (Lampa.Platform.is('android')) {
+              menu.push({
+                title: 'Запустить плеер - Android',
+                player: 'android'
+              });
+            }
+
             menu.push({
-              title: 'Запустить плеер - Webos',
-              player: 'webos'
+              title: 'Запустить плеер - Lampa',
+              player: 'lampa'
             });
-          }
 
-          if (Lampa.Platform.is('android')) {
-            menu.push({
-              title: 'Запустить плеер - Android',
-              player: 'android'
-            });
-          }
+            if (extra) {
+              menu.push({
+                title: 'Копировать ссылку на видео',
+                copylink: true
+              });
+            }
 
-          menu.push({
-            title: 'Запустить плеер - Lampa',
-            player: 'lampa'
-          });
-          Lampa.Select.show({
-            title: 'Действие',
-            items: menu,
-            onBack: function onBack() {
-              Lampa.Controller.toggle(enabled);
-            },
-            onSelect: function onSelect(a) {
-              if (a.clearmark) {
-                Lampa.Arrays.remove(params.viewed, params.hash_file);
-                Lampa.Storage.set('online_view', params.viewed);
-                params.item.find('.torrent-item__viewed').remove();
-              }
-
-              if (a.mark) {
-                if (params.viewed.indexOf(params.hash_file) == -1) {
-                  params.viewed.push(params.hash_file);
-                  params.item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
+            Lampa.Select.show({
+              title: 'Действие',
+              items: menu,
+              onBack: function onBack() {
+                Lampa.Controller.toggle(enabled);
+              },
+              onSelect: function onSelect(a) {
+                if (a.clearmark) {
+                  Lampa.Arrays.remove(params.viewed, params.hash_file);
                   Lampa.Storage.set('online_view', params.viewed);
+                  params.item.find('.torrent-item__viewed').remove();
+                }
+
+                if (a.mark) {
+                  if (params.viewed.indexOf(params.hash_file) == -1) {
+                    params.viewed.push(params.hash_file);
+                    params.item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
+                    Lampa.Storage.set('online_view', params.viewed);
+                  }
+                }
+
+                if (a.timeclear) {
+                  params.view.percent = 0;
+                  params.view.time = 0;
+                  params.view.duration = 0;
+                  Lampa.Timeline.update(params.view);
+                }
+
+                Lampa.Controller.toggle(enabled);
+
+                if (a.player) {
+                  Lampa.Player.runas(a.player);
+                  params.item.trigger('hover:enter');
+                }
+
+                if (a.copylink) {
+                  if (extra.quality) {
+                    var qual = [];
+
+                    for (var i in extra.quality) {
+                      qual.push({
+                        title: i,
+                        file: extra.quality[i]
+                      });
+                    }
+
+                    Lampa.Select.show({
+                      title: 'Ссылки',
+                      items: qual,
+                      onBack: function onBack() {
+                        Lampa.Controller.toggle(enabled);
+                      },
+                      onSelect: function onSelect(b) {
+                        Lampa.Utils.copyTextToClipboard(b.file, function () {
+                          Lampa.Noty.show('Ссылка скопирована в буфер обмена');
+                        }, function () {
+                          Lampa.Noty.show('Ошибка при копирование ссылки');
+                        });
+                      }
+                    });
+                  } else {
+                    Lampa.Utils.copyTextToClipboard(extra.file, function () {
+                      Lampa.Noty.show('Ссылка скопирована в буфер обмена');
+                    }, function () {
+                      Lampa.Noty.show('Ошибка при копирование ссылки');
+                    });
+                  }
                 }
               }
+            });
+          }
 
-              if (a.timeclear) {
-                params.view.percent = 0;
-                params.view.time = 0;
-                params.view.duration = 0;
-                Lampa.Timeline.update(params.view);
-              }
-
-              Lampa.Controller.toggle(enabled);
-
-              if (a.player) {
-                Lampa.Player.runas(a.player);
-                params.item.trigger('hover:enter');
-              }
-            }
-          });
+          params.file(show);
         });
       };
       /**
