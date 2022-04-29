@@ -1,4 +1,4 @@
-//28.04.2022 - Fix kinobase
+//29.04.2022 - Fix kinobase
 
 (function () {
     'use strict';
@@ -889,16 +889,30 @@
         network["native"](url, function (str) {
           str = str.replace(/\n/, '');
           var links = object.movie.number_of_seasons ? str.match(/<a href="\/serial\/(.*?)">(.*?)<\/a>/g) : str.match(/<a href="\/film\/(.*?)" class="link"[^>]+>(.*?)<\/a>/g);
-          var relise = object.search_date || (object.movie.number_of_seasons ? object.movie.first_air_date : object.movie.release_date);
-          var need_year = (relise + '').slice(0, 4);
+          var relise = object.search_date || (object.movie.number_of_seasons ? object.movie.first_air_date : object.movie.release_date) || '0000';
+          var need_year = parseInt((relise + '').slice(0, 4));
           var found_url = '';
 
           if (links) {
-            links.forEach(function (l) {
+            var cards = [];
+            links.filter(function (l) {
               var link = $(l),
-                  titl = link.attr('title') || link.text();
-              if (titl.indexOf(need_year) !== -1) found_url = link.attr('href');
+                  titl = link.attr('title') || link.text() || '';
+              var year = parseInt(titl.split('(').pop().slice(0, -1));
+              if (year > need_year - 2 && year < need_year + 2) cards.push({
+                year: year,
+                title: titl.split(/\(\d{4}\)/)[0].trim(),
+                link: link.attr('href')
+              });
             });
+            var card = cards.find(function (c) {
+              return c.year == need_year;
+            });
+            if (!card) card = cards.find(function (c) {
+              return c.title == select_title;
+            });
+            if (!card && cards.length == 1) card = cards[0];
+            if (card) found_url = cards[0].link;
             if (found_url) getPage(found_url);else if (links.length) {
               _this.wait_similars = true;
               var similars = [];
@@ -1819,6 +1833,7 @@
             });
           }
 
+          if (!card && cards.length == 1) card = cards[0];
           if (card) _this.find(card.id);else {
             _this.wait_similars = true;
             component.similars(json);
