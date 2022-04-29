@@ -1,4 +1,4 @@
-//29.04.2022 - Add helper
+//29.04.2022 - Add proxy for kinobase
 
 (function () {
     'use strict';
@@ -863,7 +863,8 @@
     function kinobase(component, _object) {
       var network = new Lampa.Reguest();
       var extract = {};
-      var embed = 'https://kinobase.org/';
+      var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
+      var embed = prox + 'https://kinobase.org/';
       var object = _object;
       var select_title = '';
       var select_id = '';
