@@ -1,4 +1,4 @@
-//29.04.2022 - Fix kinobase
+//29.04.2022 - Add helper
 
 (function () {
     'use strict';
@@ -2683,6 +2683,8 @@
           }
 
           params.file(show);
+        }).on('hover:focus', function () {
+          if (Lampa.Helper) Lampa.Helper.show('online_file', 'Удерживайте клавишу (ОК) для вызова контекстного меню', params.item);
         });
       };
       /**
