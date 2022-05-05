@@ -1,4 +1,4 @@
-//05.05.2022 - Fix rezka links
+//05.05.2022 - Fix errors name
 
 (function () {
     'use strict';
@@ -8,6 +8,7 @@
       var extract = {};
       var results = [];
       var object = _object;
+      var select_title = '';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -20,6 +21,7 @@
 
       this.search = function (_object, data) {
         object = _object;
+        select_title = object.movie.title;
         var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
         var url = prox + 'https://videocdn.tv/api/';
         var itm = data[0];
@@ -35,9 +37,9 @@
           });
           success(results);
           component.loading(false);
-          if (!results.length) component.empty();
-        }, function () {
-          component.empty();
+          if (!results.length) component.empty('По запросу (' + select_title + ') нет результатов');
+        }, function (a, c) {
+          component.empty(network.errorDecode(a, c));
         });
       };
 
@@ -488,8 +490,8 @@
         network["native"](url, function (str) {
           extractData(str);
           call();
-        }, function () {
-          component.empty();
+        }, function (a, c) {
+          component.empty(network.errorDecode(a, c));
         }, false, {
           dataType: 'text'
         });
@@ -500,9 +502,9 @@
         network.timeout(10000);
         network["native"](embed + 'embed/' + id + '?s=1', function (str) {
           extractData(str);
-          if (extract.voice.length) call(extract.voice[0].token);else component.empty();
-        }, function () {
-          component.empty();
+          if (extract.voice.length) call(extract.voice[0].token);else component.empty('По запросу (' + select_title + ') нет результатов');
+        }, function (a, c) {
+          component.empty(network.errorDecode(a, c));
         }, false, {
           dataType: 'text'
         });
@@ -516,8 +518,8 @@
           extractData(str);
           filter();
           append();
-        }, function () {
-          component.empty();
+        }, function (a, c) {
+          component.empty(network.errorDecode(a, c));
         }, false, {
           dataType: 'text'
         });
@@ -928,10 +930,10 @@
               });
               component.similars(similars);
               component.loading(false);
-            } else component.empty("Не нашли подходящего для " + select_title);
-          } else component.empty("Не нашли " + select_title);
-        }, function () {
-          component.empty();
+            } else component.empty('По запросу (' + select_title + ') нет результатов');
+          } else component.empty('По запросу (' + select_title + ') нет результатов');
+        }, function (a, c) {
+          component.empty(network.errorDecode(a, c));
         }, false, {
           dataType: 'text'
         });
@@ -1248,11 +1250,11 @@
         network.silent(url, function (str) {
           if (str) {
             parse(str);
-          } else component.empty("Не нашли " + select_title);
+          } else component.empty('По запросу (' + select_title + ') нет результатов');
 
           component.loading(false);
-        }, function () {
-          component.empty();
+        }, function (a, c) {
+          component.empty(network.errorDecode(a, c));
         }, false, {
           dataType: 'text'
         });
@@ -1316,7 +1318,7 @@
             extract = json;
             filter();
             append(filtred());
-          } else component.empty("Не нашли " + select_title);
+          } else component.empty('По запросу (' + select_title + ') нет результатов');
         }
       }
       /**
@@ -1835,11 +1837,11 @@
           }
 
           if (!card && cards.length == 1) card = cards[0];
-          if (card) _this.find(card.id);else {
+          if (card) _this.find(card.id);else if (json.length) {
             _this.wait_similars = true;
             component.similars(json);
             component.loading(false);
-          }
+          } else component.empty('По запросу (' + select_title + ') нет результатов');
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         });
