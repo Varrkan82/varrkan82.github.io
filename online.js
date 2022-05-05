@@ -1,4 +1,4 @@
-//29.04.2022 - Add proxy for kinobase
+//05.05.2022 - Fix rezka links
 
 (function () {
     'use strict';
@@ -621,7 +621,7 @@
                 mass = ['2160p', '1440p', '1080p Ultra', '1080p', '720p', '480p', '360p']; //ухня тут происходит, хрен знает почему после .join() возврошает только последнию ссылку
 
             video = video.slice(1).split(/,\[/).map(function (s) {
-              return s.split(']')[0] + ']' + (s.indexOf(' or ') > -1 ? s.split('or').pop().trim() : s.split(']').pop());
+              return s.split(']')[0] + ']' + (s.indexOf(' or ') > -1 ? s.split(' or').pop().trim() : s.split(']').pop());
             }).join('[');
             element.qualitys = {};
             var preferably = Lampa.Storage.get('video_quality_default', '1080');
@@ -2864,7 +2864,7 @@
 
     function showStatus() {
       var status = Lampa.Storage.get("filmix_status", '{}');
-      var info = 'Устройство не авторизованно';
+      var info = 'Устройство не авторизовано';
 
       if (status.login) {
         if (status.is_pro) info = status.login + ' - PRO до - ' + status.pro_date;else if (status.is_pro_plus) info = status.login + ' - PRO_PLUS до - ' + status.pro_date;else info = status.login + ' - NO PRO';
