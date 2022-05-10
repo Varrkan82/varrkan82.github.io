@@ -1,4 +1,4 @@
-//05.05.2022 - Fix errors name
+//10.05.2022 - Fix kinobase
 
 (function () {
     'use strict';
@@ -1090,7 +1090,7 @@
           }
 
           extract = found;
-        } else if (vod[0] == 'pl') extract = Lampa.Arrays.decodeJson(vod[1], []);else component.empty();
+        } else if (vod[0] == 'pl') extract = Lampa.Arrays.decodeJson(vod[1], []);else component.empty('По запросу (' + select_title + ') нет результатов');
       }
 
       function getPage(url) {
@@ -1099,31 +1099,71 @@
         network["native"](embed + url, function (str) {
           str = str.replace(/\n/g, '');
           var MOVIE_ID = str.match('var MOVIE_ID = ([^;]+);');
-          var VOD_HASH = str.match('var VOD_HASH = "([^"]+)"');
-          var VOD_TIME = str.match('var VOD_TIME = "([^"]+)"');
+          var IDENTIFIER = str.match('var IDENTIFIER = "([^"]+)"');
+          var PLAYER_CUID = str.match('var PLAYER_CUID = "([^"]+)"');
 
-          if (MOVIE_ID && VOD_TIME && VOD_HASH) {
+          if (MOVIE_ID && IDENTIFIER && PLAYER_CUID) {
             select_id = MOVIE_ID[1];
-            var vod_hash = VOD_HASH[1];
-            var vod_time = VOD_TIME[1];
-            var file_url = "vod/" + select_id;
-            file_url = Lampa.Utils.addUrlComponent(file_url, "st=" + vod_hash);
-            file_url = Lampa.Utils.addUrlComponent(file_url, "e=" + vod_time);
+            var identifier = IDENTIFIER[1];
+            var player_cuid = PLAYER_CUID[1];
+            var data_url = "user_data";
+            data_url = Lampa.Utils.addUrlComponent(data_url, "page=movie");
+            data_url = Lampa.Utils.addUrlComponent(data_url, "movie_id=" + select_id);
+            data_url = Lampa.Utils.addUrlComponent(data_url, "cuid=" + player_cuid);
+            data_url = Lampa.Utils.addUrlComponent(data_url, "device=DESKTOP");
+            data_url = Lampa.Utils.addUrlComponent(data_url, "_=" + Date.now());
             network.clear();
             network.timeout(1000 * 10);
-            network["native"](embed + file_url, function (files) {
-              component.loading(false);
-              extractData(files, str);
-              filter();
-              append(filtred());
-            }, function () {
-              component.empty();
+            network["native"](embed + data_url, function (str) {
+              window.kinobaseIDS = function () {
+                return {
+                  hash: '',
+                  time: ''
+                };
+              }; //обычный eval(str) падла не работает! Пришлось выдумывать.
+
+
+              str = str.replace('eval(', '; var bigi = ');
+              str = str.replace('escape(r))}(', 'escape(r))}; window.figi = bigi(');
+              str = str.slice(0, -1);
+
+              try {
+                eval(str);
+                eval('window.kinobaseIDS = function(){' + window.figi + '; return {hash: private_vod_hash, time: private_vod_time}}');
+              } catch (e) {}
+
+              var ids = window.kinobaseIDS();
+
+              if (ids.hash) {
+                var file_url = "vod/" + select_id;
+                file_url = Lampa.Utils.addUrlComponent(file_url, "identifier=" + identifier);
+                file_url = Lampa.Utils.addUrlComponent(file_url, "player_type=new");
+                file_url = Lampa.Utils.addUrlComponent(file_url, "file_type=hls");
+                file_url = Lampa.Utils.addUrlComponent(file_url, "file_type=hls");
+                file_url = Lampa.Utils.addUrlComponent(file_url, "st=" + ids.hash);
+                file_url = Lampa.Utils.addUrlComponent(file_url, "e=" + ids.time);
+                file_url = Lampa.Utils.addUrlComponent(file_url, "_=" + Date.now());
+                network.clear();
+                network.timeout(1000 * 10);
+                network["native"](embed + file_url, function (files) {
+                  component.loading(false);
+                  extractData(files, str);
+                  filter();
+                  append(filtred());
+                }, function (a, c) {
+                  component.empty(network.errorDecode(a, c));
+                }, false, {
+                  dataType: 'text'
+                });
+              } else component.empty('Не удалось получить HASH');
+            }, function (a, c) {
+              component.empty(network.errorDecode(a, c));
             }, false, {
-              dataType: 'text'
+              dataType: 'html'
             });
-          } else component.empty();
-        }, function () {
-          component.empty();
+          } else component.empty('Не удалось получить данные');
+        }, function (a, c) {
+          component.empty(network.errorDecode(a, c));
         }, false, {
           dataType: 'text'
         });
@@ -1475,7 +1515,7 @@
 
       var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
       var embed = prox + 'https://cdnmovies.net/api/short';
-      var token = '60b340d7b5eef61f62b622b3c018843b';
+      var token = '02d56099082ad5ad586d7fe4e2493dd9';
       var filter_items = {};
       var choice = {
         season: 0,
