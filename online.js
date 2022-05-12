@@ -1917,6 +1917,7 @@
           season: 0,
           voice: 0
         };
+        extractData(results);
         filter();
         append(filtred());
         component.saveChoice(choice);
@@ -1932,6 +1933,7 @@
       this.filter = function (type, a, b) {
         choice[a.stype] = b.index;
         component.reset();
+        extractData(results);
         filter();
         append(filtred());
         component.saveChoice(choice);
@@ -1964,6 +1966,7 @@
 
 
       function extractData(data) {
+        extract = {};
         var pl_links = data.player_links;
 
         if (pl_links.playlist && Object.keys(pl_links.playlist).length > 0) {
@@ -2555,7 +2558,8 @@
         filter.set('sort', filter_sources.map(function (e) {
           return {
             title: e,
-            source: e
+            source: e,
+            selected: e == balanser
           };
         }));
         this.selected(filter_items);
