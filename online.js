@@ -1,4 +1,4 @@
-//10.05.2022 - Fix kinobase
+//12.05.2022 - Add member balanser and choice balanser
 
 (function () {
     'use strict';
@@ -2275,6 +2275,12 @@
       var files = new Lampa.Files(object);
       var filter = new Lampa.Filter(object);
       var balanser = Lampa.Storage.get('online_balanser', 'videocdn');
+      var last_bls = Lampa.Storage.cache('online_last_balanser', 200, {});
+
+      if (last_bls[object.movie.id]) {
+        balanser = last_bls[object.movie.id];
+      }
+
       var sources = {
         videocdn: new videocdn(this, object),
         rezka: new rezka(this, object),
@@ -2331,21 +2337,21 @@
             if (a.reset) {
               if (extended) sources[balanser].reset();else _this.start();
             } else {
-              if (a.stype == 'source') {
-                balanser = filter_sources[b.index];
-                Lampa.Storage.set('online_balanser', balanser);
-
-                _this.search();
-
-                setTimeout(Lampa.Select.close, 10);
-              } else {
-                sources[balanser].filter(type, a, b);
-              }
+              sources[balanser].filter(type, a, b);
             }
+          } else if (type == 'sort') {
+            balanser = a.source;
+            Lampa.Storage.set('online_balanser', balanser);
+            last_bls[object.movie.id] = balanser;
+            Lampa.Storage.set('online_last_balanser', last_bls);
+
+            _this.search();
+
+            setTimeout(Lampa.Select.close, 10);
           }
         };
 
-        filter.render().find('.filter--sort').remove();
+        filter.render().find('.filter--sort span').text('Балансер');
         filter.render();
         files.append(scroll.render());
         scroll.append(filter.render());
@@ -2545,8 +2551,13 @@
         Lampa.Storage.set('online_filter', choice);
         if (filter_items.voice && filter_items.voice.length) add('voice', 'Перевод');
         if (filter_items.season && filter_items.season.length) add('season', 'Сезон');
-        add('source', 'Источник');
         filter.set('filter', select);
+        filter.set('sort', filter_sources.map(function (e) {
+          return {
+            title: e,
+            source: e
+          };
+        }));
         this.selected(filter_items);
       };
       /**
@@ -2568,9 +2579,9 @@
 
         for (var i in need) {
           if (filter_items[i] && filter_items[i].length) {
-            if (i == 'voice' || i == 'source') {
+            if (i == 'voice') {
               select.push(filter_translate[i] + ': ' + filter_items[i][need[i]]);
-            } else {
+            } else if (i !== 'source') {
               if (filter_items.season.length >= 1) {
                 select.push(filter_translate.season + ': ' + filter_items[i][need[i]]);
               }
@@ -2579,6 +2590,7 @@
         }
 
         filter.chosen('filter', select);
+        filter.chosen('sort', [balanser]);
       };
       /**
        * Добавить файл
@@ -2733,7 +2745,7 @@
 
       this.start = function (first_select) {
         if (first_select) {
-          last = scroll.render().find('.selector').eq(2)[0];
+          last = scroll.render().find('.selector').eq(3)[0];
         }
 
         Lampa.Controller.add('content', {
@@ -2743,7 +2755,7 @@
           },
           up: function up() {
             if (Navigator.canmove('up')) {
-              if (scroll.render().find('.selector').slice(2).index(last) == 0 && last_filter) {
+              if (scroll.render().find('.selector').slice(3).index(last) == 0 && last_filter) {
                 Lampa.Controller.collectionFocus(last_filter, scroll.render());
               } else Navigator.move('up');
             } else Lampa.Controller.toggle('head');
@@ -2793,7 +2805,7 @@
       Lampa.Template.add('online_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0441 pastebin v1.45\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>\u041E\u043D\u043B\u0430\u0439\u043D</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0441 pastebin v1.48\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>\u041E\u043D\u043B\u0430\u0439\u043D</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online', component); //то же самое
 
