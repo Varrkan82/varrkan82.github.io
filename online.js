@@ -1,4 +1,4 @@
-//17.05.2022 - Fix scroll size and scroll to last
+//17.05.2022 - Fix scroll size,scroll to last and replace proxy domain
 
 (function () {
     'use strict';
@@ -22,8 +22,7 @@
       this.search = function (_object, data) {
         object = _object;
         select_title = object.movie.title;
-        var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
-        var url = prox + 'https://videocdn.tv/api/';
+        var url = 'https://cdn.svetacdn.in/api/';
         var itm = data[0];
         var type = itm.iframe_src.split('/').slice(-2)[0];
         if (type == 'movie') type = 'movies';
@@ -865,7 +864,7 @@
     function kinobase(component, _object) {
       var network = new Lampa.Reguest();
       var extract = {};
-      var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
+      var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'https://cors.eu.org/';
       var embed = prox + 'https://kinobase.org/';
       var object = _object;
       var select_title = '';
@@ -1489,9 +1488,8 @@
       var network = new Lampa.Reguest();
       var extract = {};
       var object = _object;
-      var select_title = ''; //let cors  = 'https://cors.eu.org/'
-
-      var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
+      var select_title = '';
+      var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'https://cors.eu.org/';
       var embed = prox + 'https://cdnmovies.net/api/short';
       var token = '02d56099082ad5ad586d7fe4e2493dd9';
       var filter_items = {};
@@ -2301,7 +2299,7 @@
         Lampa.Storage.set('online_balanser', 'videocdn');
       }
 
-      if (window.innerWidth > 767) scroll.minus();else scroll.minus(files.render().find('.files__left'));
+      if (window.innerWidth > 580) scroll.minus();else scroll.minus(files.render().find('.files__left'));
       scroll.body().addClass('torrent-list');
       /**
        * Подготовка
@@ -2373,8 +2371,7 @@
       this.find = function () {
         var _this2 = this;
 
-        var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'http://proxy.cub.watch/cdn/';
-        var url = prox + 'https://videocdn.tv/api/short';
+        var url = 'https://cdn.svetacdn.in/api/short';
         var query = object.search;
         url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
 
