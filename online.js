@@ -1,4 +1,4 @@
-//14.05.2022 - Fix kinobase
+//17.05.2022 - Fix scroll
 
 (function () {
     'use strict';
@@ -2301,7 +2301,7 @@
         Lampa.Storage.set('online_balanser', 'videocdn');
       }
 
-      scroll.minus();
+      if (window.innerWidth > 767) scroll.minus();else scroll.minus(files.render().find('.files__left'));
       scroll.body().addClass('torrent-list');
       /**
        * Подготовка
