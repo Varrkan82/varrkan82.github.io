@@ -1,4 +1,4 @@
-//17.05.2022 - Fix scroll size,scroll to last and replace proxy domain
+//18.05.2022 - Fic cdnmoviews for anime
 
 (function () {
     'use strict';
@@ -1585,21 +1585,24 @@
         str = str.replace(/\n/g, '');
         var find = str.match('Playerjs\\({(.*?)}\\);');
         var videos = str.match("file:'(.*?)'");
-        var video = decode(videos[1]);
 
-        if (find) {
-          var json;
+        if (videos) {
+          var video = decode(videos[1]);
 
-          try {
-            json = JSON.parse(video);
-          } catch (e) {}
+          if (find) {
+            var json;
 
-          if (json) {
-            extract = json;
-            filter();
-            append(filtred());
-          } else component.empty('По запросу (' + select_title + ') нет результатов');
-        }
+            try {
+              json = JSON.parse(video);
+            } catch (e) {}
+
+            if (json) {
+              extract = json;
+              filter();
+              append(filtred());
+            } else component.empty('По запросу (' + select_title + ') нет результатов');
+          }
+        } else component.empty('По запросу (' + select_title + ') нет результатов');
       }
 
       function decode(data) {
@@ -1679,7 +1682,6 @@
       function filtred() {
         var filtred = [];
         var filter_data = Lampa.Storage.get('online_filter', '{}');
-        console.log(extract);
 
         if (extract[0].folder || object.movie.number_of_seasons) {
           extract.forEach(function (t) {
