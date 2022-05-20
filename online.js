@@ -1,4 +1,4 @@
-//18.05.2022 - Fic cdnmoviews for anime
+//20.05.2022 - Fix activity bag and cdn https
 
 (function () {
     'use strict';
@@ -22,7 +22,7 @@
       this.search = function (_object, data) {
         object = _object;
         select_title = object.movie.title;
-        var url = 'https://cdn.svetacdn.in/api/';
+        var url = 'http://cdn.svetacdn.in/api/';
         var itm = data[0];
         var type = itm.iframe_src.split('/').slice(-2)[0];
         if (type == 'movie') type = 'movies';
@@ -2373,7 +2373,7 @@
       this.find = function () {
         var _this2 = this;
 
-        var url = 'https://cdn.svetacdn.in/api/short';
+        var url = 'http://cdn.svetacdn.in/api/short';
         var query = object.search;
         url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
 
@@ -2740,6 +2740,8 @@
 
 
       this.start = function (first_select) {
+        if (Lampa.Activity.active().activity !== this.activity) return; //обязательно, иначе наблюдается баг, активность создается но не стартует, в то время как компонент загружается и стартует самого себя.
+
         if (first_select) {
           var last_views = scroll.render().find('.selector.video--stream').find('.torrent-item__viewed').parent().last();
           if (object.movie.number_of_seasons && last_views.length) last = last_views.eq(0)[0];else last = scroll.render().find('.selector').eq(3)[0];
