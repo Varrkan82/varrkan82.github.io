@@ -1,4 +1,4 @@
-//22.05.2022 - Resize event
+//24.05.2022 - Fix cdnmovies
 
 (function () {
     'use strict';
@@ -1587,7 +1587,7 @@
         var videos = str.match("file:'(.*?)'");
 
         if (videos) {
-          var video = decode(videos[1]);
+          var video = decode(videos[1]) || videos[1];
 
           if (find) {
             var json;
