@@ -613,7 +613,7 @@
         network.clear();
         network.timeout(3000);
         network["native"](url, function (str) {
-          var videos = str.match("file': '(.*?)'}");
+          var videos = str.match("file': '(.*?)'");
 
           if (videos) {
             var video = decode(videos[1]),
