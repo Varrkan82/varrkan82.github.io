@@ -1,4 +1,4 @@
-//24.05.2022 - Fix cdnmovies
+//09.06.2022 - Add proxy settings
 
 (function () {
     'use strict';
@@ -22,7 +22,7 @@
       this.search = function (_object, data) {
         object = _object;
         select_title = object.movie.title;
-        var url = 'http://cdn.svetacdn.in/api/';
+        var url = component.proxy('videocdn') + 'http://cdn.svetacdn.in/api/';
         var itm = data[0];
         var type = itm.iframe_src.split('/').slice(-2)[0];
         if (type == 'movie') type = 'movies';
@@ -414,7 +414,7 @@
     function rezka(component, _object) {
       var network = new Lampa.Reguest();
       var extract = {};
-      var embed = 'https://voidboost.net/';
+      var embed = component.proxy('rezka') + 'https://voidboost.net/';
       var object = _object;
       var select_title = '';
       var select_id = '';
@@ -613,7 +613,7 @@
         network.clear();
         network.timeout(3000);
         network["native"](url, function (str) {
-          var videos = str.match("file': '(.*?)'");
+          var videos = str.match("file': '(.*?)'}");
 
           if (videos) {
             var video = decode(videos[1]),
@@ -864,8 +864,7 @@
     function kinobase(component, _object) {
       var network = new Lampa.Reguest();
       var extract = {};
-      var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'https://cors.eu.org/';
-      var embed = prox + 'https://kinobase.org/';
+      var embed = component.proxy('kinobase') + 'https://kinobase.org/';
       var object = _object;
       var select_title = '';
       var select_id = '';
@@ -1247,7 +1246,7 @@
     function collaps(component, _object) {
       var network = new Lampa.Reguest();
       var extract = {};
-      var embed = 'https://api.delivembd.ws/embed/';
+      var embed = component.proxy('collaps') + 'https://api.delivembd.ws/embed/';
       var object = _object;
       var select_title = '';
       var filter_items = {};
@@ -1489,8 +1488,7 @@
       var extract = {};
       var object = _object;
       var select_title = '';
-      var prox = Lampa.Storage.field('proxy_other') === false ? '' : 'https://cors.eu.org/';
-      var embed = prox + 'https://cdnmovies.net/api/short';
+      var embed = component.proxy('cdnmovies') + 'https://cdnmovies.net/api/short';
       var token = '02d56099082ad5ad586d7fe4e2493dd9';
       var filter_items = {};
       var choice = {
@@ -1584,7 +1582,7 @@
       function parse(str) {
         str = str.replace(/\n/g, '');
         var find = str.match('Playerjs\\({(.*?)}\\);');
-        var videos = str.match("file:'(.*?)'");
+        var videos = str.match("file:'(.*?)'}");
 
         if (videos) {
           var video = decode(videos[1]) || videos[1];
@@ -2277,6 +2275,18 @@
         balanser = last_bls[object.movie.id];
       }
 
+      this.proxy = function (name) {
+        var prox = Lampa.Storage.get('online_proxy_all');
+        var need = Lampa.Storage.get('online_proxy_' + name);
+        if (need) prox = need;
+
+        if (prox && prox.slice(-1) !== '/') {
+          prox += '/';
+        }
+
+        return prox;
+      };
+
       var sources = {
         videocdn: new videocdn(this, object),
         rezka: new rezka(this, object),
@@ -2379,7 +2389,7 @@
       this.find = function () {
         var _this2 = this;
 
-        var url = 'http://cdn.svetacdn.in/api/short';
+        var url = this.proxy('videocdn') + 'http://cdn.svetacdn.in/api/short';
         var query = object.search;
         url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
 
@@ -2835,6 +2845,21 @@
         });
         e.object.activity.render().find('.view--torrent').after(btn);
       }
+    }); ///////ONLINE/////////
+
+    Lampa.Params.select('online_proxy_all', '', '');
+    Lampa.Params.select('online_proxy_videocdn', '', '');
+    Lampa.Params.select('online_proxy_rezka', '', '');
+    Lampa.Params.select('online_proxy_kinobase', '', '');
+    Lampa.Params.select('online_proxy_collaps', '', '');
+    Lampa.Params.select('online_proxy_cdnmovies', '', '');
+    Lampa.Template.add('settings_proxy', "<div>\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_all\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">\u041E\u0441\u043D\u043E\u0432\u043D\u043E\u0439 \u043F\u0440\u043E\u043A\u0441\u0438</div>\n        <div class=\"settings-param__value\"></div>\n        <div class=\"settings-param__descr\">\u0411\u0443\u0434\u0435\u0442 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u044C\u0441\u044F \u0434\u043B\u044F \u0432\u0441\u0435\u0445 \u0431\u0430\u043B\u0430\u043D\u0441\u0435\u0440\u043E\u0432</div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_videocdn\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">Videocdn</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_rezka\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">Rezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_kinobase\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_collaps\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">Collaps</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_cdnmovies\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">Cdnmovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n</div>");
+    Lampa.Listener.follow('app', function (e) {
+      if (e.type == 'ready' && Lampa.Settings.main && !Lampa.Settings.main().render().find('[data-component="proxy"]').length) {
+        var field = $("<div class=\"settings-folder selector\" data-component=\"proxy\">\n            <div class=\"settings-folder__icon\">\n                <svg height=\"46\" viewBox=\"0 0 42 46\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <rect x=\"1.5\" y=\"26.5\" width=\"39\" height=\"18\" rx=\"1.5\" stroke=\"white\" stroke-width=\"3\"/>\n                <circle cx=\"9.5\" cy=\"35.5\" r=\"3.5\" fill=\"white\"/>\n                <circle cx=\"26.5\" cy=\"35.5\" r=\"2.5\" fill=\"white\"/>\n                <circle cx=\"32.5\" cy=\"35.5\" r=\"2.5\" fill=\"white\"/>\n                <circle cx=\"21.5\" cy=\"5.5\" r=\"5.5\" fill=\"white\"/>\n                <rect x=\"31\" y=\"4\" width=\"11\" height=\"3\" rx=\"1.5\" fill=\"white\"/>\n                <rect y=\"4\" width=\"11\" height=\"3\" rx=\"1.5\" fill=\"white\"/>\n                <rect x=\"20\" y=\"14\" width=\"3\" height=\"7\" rx=\"1.5\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"settings-folder__name\">\u041F\u0440\u043E\u043A\u0441\u0438</div>\n        </div>");
+        Lampa.Settings.main().render().find('[data-component="more"]').after(field);
+        Lampa.Settings.main().update();
+      }
     }); ///////FILMIX/////////
 
     var network = new Lampa.Reguest();
@@ -2853,7 +2878,7 @@
     });
     Lampa.Listener.follow('app', function (e) {
       if (e.type == 'ready' && Lampa.Settings.main && !Lampa.Settings.main().render().find('[data-component="filmix"]').length) {
-        var field = $("<div class=\"settings-folder selector\" data-component=\"filmix\">\n            <div class=\"settings-folder__icon\">\n                <svg height=\"44\" viewBox=\"0 0 27 44\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <path d=\"M0 10.1385V44H9.70312V29.0485H23.7656V19.2233H9.70312V15.6634C9.70312 11.8188 12.6562 9.39806 15.8906 9.39806H27V0H9.70312C5.20312 0 0 3.41748 0 10.1385Z\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"settings-folder__name\">Filmix</div>\n        </div>");
+        var field = $("<div class=\"settings-folder selector\" data-component=\"filmix\">\n            <div class=\"settings-folder__icon\">\n                <svg height=\"57\" viewBox=\"0 0 58 57\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <path d=\"M20 20.3735V45H26.8281V34.1262H36.724V26.9806H26.8281V24.3916C26.8281 21.5955 28.9062 19.835 31.1823 19.835H39V13H26.8281C23.6615 13 20 15.4854 20 20.3735Z\" fill=\"white\"/>\n                <rect x=\"2\" y=\"2\" width=\"54\" height=\"53\" rx=\"5\" stroke=\"white\" stroke-width=\"4\"/>\n                </svg>\n            </div>\n            <div class=\"settings-folder__name\">Filmix</div>\n        </div>");
         Lampa.Settings.main().render().find('[data-component="more"]').after(field);
         Lampa.Settings.main().update();
       }
