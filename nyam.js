@@ -39,7 +39,7 @@
         if (object.page < 20) {
           waitload = true;
           object.page++;
-          network.silent(object.url + '?pg=' + object.page, function (result) {
+          network.silent(object.url + (object.url.indexOf('?') >= 0 ? '&' : '?') +'pg=' + object.page, function (result) {
             _this2.append(result);
 
             if (result.length) waitload = false;
@@ -142,6 +142,9 @@
       window.plugin_sisi_ready = true;
       Lampa.Component.add('sisi', Sisi);
       var catalogs = [{
+        title: 'Sexy Time',
+        url: './ch/xdb'
+      }, {
         title: 'eporner.com',
         url: './ch/epr'
       }, {
@@ -171,6 +174,27 @@
       }, {
         title: 'chaturbate.com',
         url: './ch/chu'
+      }, {
+        title: 'Brazzers',
+        url: './ch/xdb?sites=brazzers'
+      }, {
+        title: 'Reality Kings',
+        url: './ch/xdb?sites=realitykings'
+      }, {
+        title: 'Mofos',
+        url: './ch/xdb?sites=mofos'
+      }, {
+        title: 'Propertysex',
+        url: './ch/xdb?sites=propertysex'
+      }, {
+        title: 'Babes',
+        url: './ch/xdb?sites=babes'
+      }, {
+        title: 'TrueAmateurs',
+        url: './ch/xdb?sites=trueamateurs'
+      }, {
+        title: 'Twistys',
+        url: './ch/xdb?sites=twistys'
       }];
       Lampa.Listener.follow('app', function (e) {
         if (e.type == 'ready') {
