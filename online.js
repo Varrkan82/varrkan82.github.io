@@ -1,4 +1,4 @@
-//09.06.2022 - Add proxy settings
+//10.06.2022 - Fix videocdn, set max 720p
 
 (function () {
     'use strict';
@@ -231,6 +231,7 @@
         }
 
         max_quality = parseInt(max_quality);
+        if (max_quality > 720) max_quality = 720;
 
         if (file) {
           var path = file.slice(0, file.lastIndexOf('/')) + '/';
