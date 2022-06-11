@@ -1,4 +1,4 @@
-//10.06.2022 - Fix videocdn, set max 720p
+//11.06.2022 - Fix videocdn links
 
 (function () {
     'use strict';
@@ -96,32 +96,24 @@
         filter();
         append(filtred());
       }
-      /**
-       * Получить потоки
-       * @param {String} str 
-       * @param {Int} max_quality 
-       * @returns string
-       */
 
-
-      function extractFile(str, max_quality) {
-        var url = '';
-
+      function extractItems(str, max_quality) {
         try {
           var items = str.split(',').map(function (item) {
             return {
               quality: parseInt(item.match(/\[(\d+)p\]/)[1]),
               file: item.replace(/\[\d+p\]/, '').split(' or ')[0]
             };
+          }).filter(function (item) {
+            return item.quality <= max_quality;
           });
           items.sort(function (a, b) {
             return b.quality - a.quality;
           });
-          url = items[0].file;
-          url = 'http:' + url.slice(0, url.lastIndexOf('/')) + '/' + (max_quality || items[0].quality) + '.mp4';
+          return items;
         } catch (e) {}
 
-        return url;
+        return [];
       }
       /**
        * Получить информацию о фильме
@@ -166,7 +158,8 @@
 
                 extract[i] = {
                   json: Lampa.Arrays.decodeJson(text.value, {}),
-                  file: extractFile(json[i], max_quality)
+                  //file: extractFile(json[i], max_quality)
+                  items: extractItems(json[i], max_quality)
                 };
 
                 for (var a in extract[i].json) {
@@ -174,10 +167,12 @@
 
                   if (elem.folder) {
                     for (var f in elem.folder) {
-                      var folder = elem.folder[f];
-                      folder.file = extractFile(folder.file, max_quality);
+                      var folder = elem.folder[f]; //folder.file = extractFile(folder.file, max_quality)
+
+                      folder.items = extractItems(folder.file, max_quality);
                     }
-                  } else elem.file = extractFile(elem.file, max_quality);
+                  } //else elem.file = extractFile(elem.file, max_quality)
+                  else elem.items = extractItems(elem.file, max_quality);
                 }
               };
 
@@ -186,6 +181,8 @@
 
                 if (_ret === "continue") continue;
               }
+
+              console.log(extract);
             }
           }, false, false, {
             dataType: 'text'
@@ -204,6 +201,7 @@
         var translat = extract[element.translation];
         var id = element.season + '_' + element.episode;
         var file = '';
+        var items = [];
         var quality = false;
 
         if (translat) {
@@ -216,35 +214,56 @@
                   var folder = elem.folder[f];
 
                   if (folder.id == id) {
-                    file = folder.file;
+                    //file = folder.file
+                    items = folder.items;
                     break;
                   }
                 }
               } else if (elem.id == id) {
-                file = elem.file;
+                //file = elem.file
+                items = elem.items;
                 break;
               }
             }
           } else {
-            file = translat.file;
+            //file = translat.file
+            items = translat.items;
           }
         }
 
         max_quality = parseInt(max_quality);
-        if (max_quality > 720) max_quality = 720;
+        /*
+        if(file){
+            let path = file.slice(0, file.lastIndexOf('/')) + '/'
+              if(file.split('/').pop().replace('.mp4','') !== max_quality){
+                file = path + max_quality + '.mp4'
+            }
+              quality = {}
+              let mass = [1080,720,480,360]
+                mass = mass.slice(mass.indexOf(max_quality))
+                  mass.forEach((n)=>{
+                    quality[n + 'p'] = path + n + '.mp4'
+                })
+            
+            let preferably = Lampa.Storage.get('video_quality_default','1080') + 'p'
+            
+            if(quality[preferably]) file = quality[preferably]
+        }
+        */
 
-        if (file) {
-          var path = file.slice(0, file.lastIndexOf('/')) + '/';
-
-          if (file.split('/').pop().replace('.mp4', '') !== max_quality) {
-            file = path + max_quality + '.mp4';
-          }
-
+        if (items && items.length) {
           quality = {};
           var mass = [1080, 720, 480, 360];
           mass = mass.slice(mass.indexOf(max_quality));
           mass.forEach(function (n) {
-            quality[n + 'p'] = path + n + '.mp4';
+            var exes = items.find(function (a) {
+              return a.quality == n;
+            });
+
+            if (exes) {
+              if (!file) file = exes.file;
+              quality[n + 'p'] = exes.file;
+            }
           });
           var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
           if (quality[preferably]) file = quality[preferably];
