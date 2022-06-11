@@ -54,7 +54,7 @@
         data.forEach(function (element) {
           var card = Lampa.Template.get('card', {
             title: element.name,
-            release_year: element.time + (element.quality ? ' / ' + element.quality : '')
+            release_year: (element.time != null && element.quality != null) ? (element.time + ' / ' + element.quality) : element.time ?? element.quality
           });
           card.addClass('card--collection');
           card.find('.card__img').attr('src', element.picture);
@@ -183,6 +183,9 @@
       }, {
         title: 'Mofos',
         url: './ch/xdb?sites=mofos'
+      }, {
+        title: 'Evil Angel',
+        url: './ch/xdb?sites=evilangel'
       }, {
         title: 'Propertysex',
         url: './ch/xdb?sites=propertysex'
