@@ -102,7 +102,7 @@
           var items = str.split(',').map(function (item) {
             return {
               quality: parseInt(item.match(/\[(\d+)p\]/)[1]),
-              file: item.replace(/\[\d+p\]/, '').split(' or ')[0]
+              file: 'http:' + item.replace(/\[\d+p\]/, '').split(' or ')[0]
             };
           }).filter(function (item) {
             return item.quality <= max_quality;
@@ -181,8 +181,6 @@
 
                 if (_ret === "continue") continue;
               }
-
-              console.log(extract);
             }
           }, false, false, {
             dataType: 'text'
