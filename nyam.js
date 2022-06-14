@@ -187,6 +187,9 @@
         title: 'Evil Angel',
         url: './ch/xdb?sites=evilangel'
       }, {
+        title: 'LetsDoeit',
+        url: './ch/xdb?sites=letsdoeit'
+      }, {
         title: 'Propertysex',
         url: './ch/xdb?sites=propertysex'
       }, {
