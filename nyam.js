@@ -145,6 +145,9 @@
         title: 'Sexy Time',
         url: './ch/xdb'
       }, {
+        title: 'pornhubpremium.com',
+        url: './ch/xdb?sites=pornhub'
+      }, {
         title: 'eporner.com',
         url: './ch/epr'
       }, {
