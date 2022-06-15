@@ -154,6 +154,9 @@
         title: 'xhamster.com',
         url: './ch/xmr'
       }, {
+        title: 'xhamster.com/gold',
+        url: './ch/xdb?sites=faphouse'
+      }, {
         title: 'porntrex.com',
         url: './ch/ptx'
       }, {
@@ -169,38 +172,50 @@
         title: 'ebalovo.porn',
         url: './ch/elo'
       }, {
+        title: 'bang.com',
+        url: './ch/xdb?sites=bang'
+      }, {
+        title: 'brazzers.com',
+        url: './ch/xdb?sites=brazzers'
+      }, {
+        title: 'realitykings.com',
+        url: './ch/xdb?sites=realitykings'
+      }, {
+        title: 'mofos.com',
+        url: './ch/xdb?sites=mofos'
+      }, {
+        title: 'evilangel.com',
+        url: './ch/xdb?sites=evilangel'
+      }, {
+        title: 'letsdoeit.com',
+        url: './ch/xdb?sites=letsdoeit'
+      }, {
+        title: 'newsensations.com',
+        url: './ch/xdb?sites=newsensations'
+      }, {
+        title: 'private.com',
+        url: './ch/xdb?sites=private'
+      }, {
+        title: 'penthousegold.com',
+        url: './ch/xdb?sites=penthouse'
+      }, {
+        title: 'propertysex.com',
+        url: './ch/xdb?sites=propertysex'
+      }, {
+        title: 'babes.com',
+        url: './ch/xdb?sites=babes'
+      }, {
+        title: 'trueamateurs.com',
+        url: './ch/xdb?sites=trueamateurs'
+      }, {
+        title: 'twistys.com',
+        url: './ch/xdb?sites=twistys'
+      }, {
         title: 'bongacams.com',
         url: './ch/bgs'
       }, {
         title: 'chaturbate.com',
         url: './ch/chu'
-      }, {
-        title: 'Brazzers',
-        url: './ch/xdb?sites=brazzers'
-      }, {
-        title: 'Reality Kings',
-        url: './ch/xdb?sites=realitykings'
-      }, {
-        title: 'Mofos',
-        url: './ch/xdb?sites=mofos'
-      }, {
-        title: 'Evil Angel',
-        url: './ch/xdb?sites=evilangel'
-      }, {
-        title: 'LetsDoeit',
-        url: './ch/xdb?sites=letsdoeit'
-      }, {
-        title: 'Propertysex',
-        url: './ch/xdb?sites=propertysex'
-      }, {
-        title: 'Babes',
-        url: './ch/xdb?sites=babes'
-      }, {
-        title: 'TrueAmateurs',
-        url: './ch/xdb?sites=trueamateurs'
-      }, {
-        title: 'Twistys',
-        url: './ch/xdb?sites=twistys'
       }];
       Lampa.Listener.follow('app', function (e) {
         if (e.type == 'ready') {
