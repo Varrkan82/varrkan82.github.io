@@ -145,6 +145,18 @@
         title: 'Sexy Time',
         url: './ch/xdb'
       }, {
+        title: 'hqporner.com',
+        url: './ch/hqr'
+      }, {
+        title: 'xvideos.com',
+        url: './ch/xds'
+      }, {
+        title: 'xhamster.com',
+        url: './ch/xmr'
+      }, {
+        title: 'xhamster.com/gold',
+        url: './ch/xdb?sites=faphouse'
+      }, {
         title: 'pornhubpremium.com',
         url: './ch/xdb?sites=pornhub'
       }, {
@@ -154,26 +166,14 @@
         title: 'spankbang.com',
         url: './ch/sbg'
       }, {
-        title: 'xhamster.com',
-        url: './ch/xmr'
-      }, {
-        title: 'xhamster.com/gold',
-        url: './ch/xdb?sites=faphouse'
-      }, {
         title: 'porntrex.com',
         url: './ch/ptx'
       }, {
-        title: 'hqporner.com',
-        url: './ch/hqr'
-      }, {
-        title: 'xvideos.com',
-        url: './ch/xds'
+        title: 'ebalovo.porn',
+        url: './ch/elo'
       }, {
         title: 'xnxx.com',
         url: './ch/xnx'
-      }, {
-        title: 'ebalovo.porn',
-        url: './ch/elo'
       }, {
         title: 'bang.com',
         url: './ch/xdb?sites=bang'
