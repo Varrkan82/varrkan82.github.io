@@ -141,10 +141,10 @@
     function startSisi() {
       window.plugin_sisi_ready = true;
       Lampa.Component.add('sisi', Sisi);
-      var catalogs = [{
+      var catalogs = [/*{
         title: 'Sexy Time',
         url: './ch/xdb'
-      }, {
+      }, */{
         title: 'hqporner.com',
         url: './ch/hqr'
       }, {
@@ -153,13 +153,13 @@
       }, {
         title: 'xhamster.com',
         url: './ch/xmr'
-      }, {
+      }, /*{
         title: 'xhamster.com/gold',
         url: './ch/xdb?sites=faphouse'
       }, {
         title: 'pornhubpremium.com',
         url: './ch/xdb?sites=pornhub'
-      }, {
+      }, */{
         title: 'eporner.com',
         url: './ch/epr'
       }, {
@@ -174,7 +174,7 @@
       }, {
         title: 'xnxx.com',
         url: './ch/xnx'
-      }, {
+      }, /*{
         title: 'bang.com',
         url: './ch/xdb?sites=bang'
       }, {
@@ -213,7 +213,7 @@
       }, {
         title: 'twistys.com',
         url: './ch/xdb?sites=twistys'
-      }, {
+      }, */{
         title: 'bongacams.com',
         url: './ch/bgs'
       }, {
