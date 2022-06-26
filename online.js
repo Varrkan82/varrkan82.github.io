@@ -1,4 +1,4 @@
-//11.06.2022 - Fix videocdn links
+//26.06.2022 - Add lang
 
 (function () {
     'use strict';
@@ -36,7 +36,7 @@
           });
           success(results);
           component.loading(false);
-          if (!results.length) component.empty('По запросу (' + select_title + ') нет результатов');
+          if (!results.length) component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         });
@@ -288,7 +288,7 @@
             var s = movie.season_count;
 
             while (s--) {
-              filter_items.season.push('Сезон ' + (movie.season_count - s));
+              filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + (movie.season_count - s));
             }
           }
 
@@ -361,7 +361,7 @@
         component.reset();
         var viewed = Lampa.Storage.cache('online_view', 5000, []);
         items.forEach(function (element) {
-          if (element.season) element.title = 'S' + element.season + ' / Серия ' + element.title;
+          if (element.season) element.title = 'S' + element.season + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + element.title;
           element.info = element.season ? ' / ' + filter_items.voice[choice.voice] : '';
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
@@ -412,7 +412,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show('Не удалось извлечь ссылку');
+            } else Lampa.Noty.show(Lampa.Lang.translate('online_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -519,7 +519,7 @@
         network.timeout(10000);
         network["native"](embed + 'embed/' + id + '?s=1', function (str) {
           extractData(str);
-          if (extract.voice.length) call(extract.voice[0].token);else component.empty('По запросу (' + select_title + ') нет результатов');
+          if (extract.voice.length) call(extract.voice[0].token);else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
@@ -856,7 +856,7 @@
                 Lampa.Storage.set('online_view', viewed);
               }
             }, function () {
-              Lampa.Noty.show('Не удалось извлечь ссылку');
+              Lampa.Noty.show(Lampa.Lang.translate('online_nolink'));
             });
           });
           component.append(item);
@@ -946,8 +946,8 @@
               });
               component.similars(similars);
               component.loading(false);
-            } else component.empty('По запросу (' + select_title + ') нет результатов');
-          } else component.empty('По запросу (' + select_title + ') нет результатов');
+            } else component.emptyForQuery(select_title);
+          } else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
@@ -1041,7 +1041,7 @@
           extract.forEach(function (elem) {
             var quality = elem.file.match(/\[(\d+)p\]/g).pop().replace(/\[|\]/g, '');
             var voice = elem.file.match("{([^}]+)}");
-            if (!elem.title) elem.title = elem.comment || (voice ? voice[1] : 'Без названия');
+            if (!elem.title) elem.title = elem.comment || (voice ? voice[1] : Lampa.Lang.translate('noname'));
             if (!elem.quality) elem.quality = quality;
             if (!elem.info) elem.info = '';
           });
@@ -1106,7 +1106,7 @@
           }
 
           extract = found;
-        } else if (vod[0] == 'pl') extract = Lampa.Arrays.decodeJson(vod[1], []);else component.empty('По запросу (' + select_title + ') нет результатов');
+        } else if (vod[0] == 'pl') extract = Lampa.Arrays.decodeJson(vod[1], []);else component.emptyForQuery(select_title);
       }
 
       function getPage(url) {
@@ -1151,11 +1151,11 @@
                 }, false, {
                   dataType: 'text'
                 });
-              } else component.empty('Не удалось получить HASH');
+              } else component.empty(Lampa.Lang.translate('torrent_parser_no_hash'));
             }, function (a, c) {
               component.empty(network.errorDecode(a, c));
             });
-          } else component.empty('Не удалось получить данные');
+          } else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
@@ -1244,7 +1244,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show('Не удалось извлечь ссылку');
+            } else Lampa.Noty.show(Lampa.Lang.translate('online_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -1284,7 +1284,7 @@
         network.silent(url, function (str) {
           if (str) {
             parse(str);
-          } else component.empty('По запросу (' + select_title + ') нет результатов');
+          } else component.emptyForQuery(select_title);
 
           component.loading(false);
         }, function (a, c) {
@@ -1352,7 +1352,7 @@
             extract = json;
             filter();
             append(filtred());
-          } else component.empty('По запросу (' + select_title + ') нет результатов');
+          } else component.emptyForQuery(select_title);
         }
       }
       /**
@@ -1370,7 +1370,7 @@
         if (extract.playlist) {
           if (extract.playlist.seasons) {
             extract.playlist.seasons.forEach(function (season) {
-              filter_items.season.push('Сезон ' + season.season);
+              filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + season.season);
             });
           }
         }
@@ -1482,7 +1482,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show('Не удалось извлечь ссылку');
+            } else Lampa.Noty.show(Lampa.Lang.translate('online_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -1534,7 +1534,7 @@
 
             _this.find(iframe);
           } else {
-            component.empty('По запросу (' + select_title + ') нет результатов');
+            component.emptyForQuery(select_title);
           }
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -1616,9 +1616,9 @@
               extract = json;
               filter();
               append(filtred());
-            } else component.empty('По запросу (' + select_title + ') нет результатов');
+            } else component.emptyForQuery(select_title);
           }
-        } else component.empty('По запросу (' + select_title + ') нет результатов');
+        } else component.emptyForQuery(select_title);
       }
 
       function decode(data) {
@@ -1746,7 +1746,7 @@
         component.reset();
         var viewed = Lampa.Storage.cache('online_view', 5000, []);
         items.forEach(function (element) {
-          if (element.season) element.title = 'S' + element.season + ' / Серия ' + element.episode;
+          if (element.season) element.title = 'S' + element.season + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + element.episode;
           element.info = element.season ? ' / ' + Lampa.Utils.shortText(filter_items.voice[choice.voice], 50) : '';
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
@@ -1799,7 +1799,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show('Не удалось извлечь ссылку');
+            } else Lampa.Noty.show(Lampa.Lang.translate('online_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -1875,7 +1875,7 @@
             _this.wait_similars = true;
             component.similars(json);
             component.loading(false);
-          } else component.empty('По запросу (' + select_title + ') нет результатов');
+          } else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         });
@@ -1905,7 +1905,7 @@
             if (found && Object.keys(found).length) {
               success(found);
               component.loading(false);
-            } else component.empty('По запросу (' + select_title + ') нет результатов');
+            } else component.emptyForQuery(select_title);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
           });
@@ -2008,7 +2008,7 @@
 
                   items.push({
                     id: _seas_num + '_' + _epis_num,
-                    comment: _epis_num + ' Серия <i>' + ID + '</i>',
+                    comment: _epis_num + ' ' + Lampa.Lang.translate('torrent_serial_episode') + ' <i>' + ID + '</i>',
                     file: stream_url,
                     episode: _epis_num,
                     season: _seas_num,
@@ -2025,7 +2025,7 @@
               };
               extract[transl_id].json.push({
                 id: seas_num,
-                comment: seas_num + ' сезон',
+                comment: seas_num + ' ' + Lampa.Lang.translate('torrent_serial_season'),
                 folder: items,
                 translation: transl_id
               });
@@ -2132,7 +2132,7 @@
           var s = results.last_episode.season;
 
           while (s--) {
-            filter_items.season.push('Сезон ' + (results.last_episode.season - s));
+            filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + (results.last_episode.season - s));
           }
         }
 
@@ -2210,7 +2210,7 @@
         component.reset();
         var viewed = Lampa.Storage.cache('online_view', 5000, []);
         items.forEach(function (element) {
-          if (element.season) element.title = 'S' + element.season + ' / Серия ' + element.episode;
+          if (element.season) element.title = 'S' + element.season + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + element.episode;
           element.info = element.season ? ' / ' + Lampa.Utils.shortText(filter_items.voice[choice.voice], 50) : '';
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
@@ -2261,7 +2261,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show('Не удалось извлечь ссылку');
+            } else Lampa.Noty.show(Lampa.Lang.translate('online_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -2318,9 +2318,9 @@
       var extended;
       var selected_id;
       var filter_translate = {
-        season: 'Сезон',
-        voice: 'Перевод',
-        source: 'Источник'
+        season: Lampa.Lang.translate('torrent_serial_season'),
+        voice: Lampa.Lang.translate('torrent_parser_voice'),
+        source: Lampa.Lang.translate('settings_rest_source')
       };
       var filter_sources = ['videocdn', 'rezka', 'kinobase', 'collaps', 'cdnmovies', 'filmix']; // шаловливые ручки
 
@@ -2381,7 +2381,7 @@
           }
         };
 
-        filter.render().find('.filter--sort span').text('Балансер');
+        filter.render().find('.filter--sort span').text(Lampa.Lang.translate('online_balanser'));
         filter.render();
         files.append(scroll.render());
         scroll.append(filter.render());
@@ -2429,7 +2429,7 @@
 
               _this2.loading(false);
             }
-          } else _this2.empty('По запросу (' + query + ') нет результатов');
+          } else _this2.emptyForQuery(query);
         };
 
         var pillow = function pillow(a, c) {
@@ -2574,12 +2574,12 @@
         filter_items.source = filter_sources;
         choice.source = filter_sources.indexOf(balanser);
         select.push({
-          title: 'Сбросить фильтр',
+          title: Lampa.Lang.translate('torrent_parser_reset'),
           reset: true
         });
         Lampa.Storage.set('online_filter', choice);
-        if (filter_items.voice && filter_items.voice.length) add('voice', 'Перевод');
-        if (filter_items.season && filter_items.season.length) add('season', 'Сезон');
+        if (filter_items.voice && filter_items.voice.length) add('voice', Lampa.Lang.translate('torrent_parser_voice'));
+        if (filter_items.season && filter_items.season.length) add('season', Lampa.Lang.translate('torrent_serial_season'));
         filter.set('filter', select);
         filter.set('sort', filter_sources.map(function (e) {
           return {
@@ -2644,44 +2644,44 @@
           function show(extra) {
             var enabled = Lampa.Controller.enabled().name;
             var menu = [{
-              title: 'Пометить',
+              title: Lampa.Lang.translate('torrent_parser_label_title'),
               mark: true
             }, {
-              title: 'Снять отметку',
+              title: Lampa.Lang.translate('torrent_parser_label_cancel_title'),
               clearmark: true
             }, {
-              title: 'Сбросить таймкод',
+              title: Lampa.Lang.translate('time_reset'),
               timeclear: true
             }];
 
             if (Lampa.Platform.is('webos')) {
               menu.push({
-                title: 'Запустить плеер - Webos',
+                title: Lampa.Lang.translate('player_lauch') + ' - Webos',
                 player: 'webos'
               });
             }
 
             if (Lampa.Platform.is('android')) {
               menu.push({
-                title: 'Запустить плеер - Android',
+                title: Lampa.Lang.translate('player_lauch') + ' - Android',
                 player: 'android'
               });
             }
 
             menu.push({
-              title: 'Запустить плеер - Lampa',
+              title: Lampa.Lang.translate('player_lauch') + ' - Lampa',
               player: 'lampa'
             });
 
             if (extra) {
               menu.push({
-                title: 'Копировать ссылку на видео',
+                title: Lampa.Lang.translate('copy_link'),
                 copylink: true
               });
             }
 
             Lampa.Select.show({
-              title: 'Действие',
+              title: Lampa.Lang.translate('title_action'),
               items: menu,
               onBack: function onBack() {
                 Lampa.Controller.toggle(enabled);
@@ -2734,17 +2734,17 @@
                       },
                       onSelect: function onSelect(b) {
                         Lampa.Utils.copyTextToClipboard(b.file, function () {
-                          Lampa.Noty.show('Ссылка скопирована в буфер обмена');
+                          Lampa.Noty.show(Lampa.Lang.translate('copy_secuses'));
                         }, function () {
-                          Lampa.Noty.show('Ошибка при копирование ссылки');
+                          Lampa.Noty.show(Lampa.Lang.translate('copy_error'));
                         });
                       }
                     });
                   } else {
                     Lampa.Utils.copyTextToClipboard(extra.file, function () {
-                      Lampa.Noty.show('Ссылка скопирована в буфер обмена');
+                      Lampa.Noty.show(Lampa.Lang.translate('copy_secuses'));
                     }, function () {
-                      Lampa.Noty.show('Ошибка при копирование ссылки');
+                      Lampa.Noty.show(Lampa.Lang.translate('copy_error'));
                     });
                   }
                 }
@@ -2754,7 +2754,7 @@
 
           params.file(show);
         }).on('hover:focus', function () {
-          if (Lampa.Helper) Lampa.Helper.show('online_file', 'Удерживайте клавишу (ОК) для вызова контекстного меню', params.item);
+          if (Lampa.Helper) Lampa.Helper.show('online_file', Lampa.Lang.translate('helper_online_file'), params.item);
         });
       };
       /**
@@ -2767,6 +2767,14 @@
         if (msg) empty.find('.empty__descr').text(msg);
         scroll.append(empty);
         this.loading(false);
+      };
+      /**
+       * Показать пустой результат по ключевому слову
+       */
+
+
+      this.emptyForQuery = function (query) {
+        this.empty(Lampa.Lang.translate('online_query_start') + ' (' + query + ') ' + Lampa.Lang.translate('online_query_end'));
       };
       /**
        * Начать навигацию по файлам
@@ -2797,7 +2805,7 @@
             Navigator.move('down');
           },
           right: function right() {
-            if (Navigator.canmove('right')) Navigator.move('right');else filter.show('Фильтр', 'filter');
+            if (Navigator.canmove('right')) Navigator.move('right');else filter.show(Lampa.Lang.translate('title_filter'), 'filter');
           },
           left: function left() {
             if (Navigator.canmove('left')) Navigator.move('left');else Lampa.Controller.toggle('menu');
@@ -2834,25 +2842,128 @@
       };
     }
 
+    Lampa.Lang.add({
+      online_nolink: {
+        ru: 'Не удалось извлечь ссылку',
+        uk: 'Неможливо отримати посилання',
+        en: 'Failed to fetch link'
+      },
+      online_balanser: {
+        ru: 'Балансер',
+        uk: 'Балансер',
+        en: 'Balancer'
+      },
+      helper_online_file: {
+        ru: 'Удерживайте клавишу "ОК" для вызова контекстного меню',
+        uk: 'Утримуйте клавішу "ОК" для виклику контекстного меню',
+        en: 'Hold the "OK" key to bring up the context menu'
+      },
+      online_query_start: {
+        ru: 'По запросу',
+        uk: 'На запит',
+        en: 'On request'
+      },
+      online_query_end: {
+        ru: 'нет результатов',
+        uk: 'немає результатів',
+        en: 'no results'
+      },
+      title_online: {
+        ru: 'Онлайн',
+        uk: 'Онлайн',
+        en: 'Online'
+      },
+      title_proxy: {
+        ru: 'Прокси',
+        uk: 'Проксі',
+        en: 'Proxy'
+      },
+      online_proxy_title: {
+        ru: 'Основной прокси',
+        uk: 'Основний проксі',
+        en: 'Main proxy'
+      },
+      online_proxy_descr: {
+        ru: 'Будет использоваться для всех балансеров',
+        uk: 'Використовуватиметься для всіх балансерів',
+        en: 'Will be used for all balancers'
+      },
+      online_proxy_placeholder: {
+        ru: 'Например: http://proxy.com',
+        uk: 'Наприклад: http://proxy.com',
+        en: 'For example: http://proxy.com'
+      },
+      filmix_param_add_title: {
+        ru: 'Добавить ТОКЕН от Filmix',
+        uk: 'Додати ТОКЕН від Filmix',
+        en: 'Add TOKEN from Filmix'
+      },
+      filmix_param_add_descr: {
+        ru: 'Добавьте ТОКЕН для подключения подписки',
+        uk: 'Додайте ТОКЕН для підключення передплати',
+        en: 'Add a TOKEN to connect a subscription'
+      },
+      filmix_param_placeholder: {
+        ru: 'Например: nxjekeb57385b..',
+        uk: 'Наприклад: nxjekeb57385b..',
+        en: 'For example: nxjekeb57385b..'
+      },
+      filmix_param_add_device: {
+        ru: 'Добавить устройство на Filmix',
+        uk: 'Додати пристрій на Filmix',
+        en: 'Add Device to Filmix'
+      },
+      filmix_modal_text: {
+        ru: 'Введите его на странице https://filmix.ac/consoles в вашем авторизованном аккаунте!',
+        uk: 'Введіть його на сторінці https://filmix.ac/consoles у вашому авторизованому обліковому записі!',
+        en: 'Enter it at https://filmix.ac/consoles in your authorized account!'
+      },
+      filmix_modal_wait: {
+        ru: 'Ожидаем код',
+        uk: 'Очікуємо код',
+        en: 'Waiting for the code'
+      },
+      filmix_copy_secuses: {
+        ru: 'Код скопирован в буфер обмена',
+        uk: 'Код скопійовано в буфер обміну',
+        en: 'Code copied to clipboard'
+      },
+      filmix_copy_fail: {
+        ru: 'Ошибка при копировании',
+        uk: 'Помилка при копіюванні',
+        en: 'Copy error'
+      },
+      filmix_nodevice: {
+        ru: 'Устройство не авторизовано',
+        uk: 'Пристрій не авторизований',
+        en: 'Device not authorized'
+      },
+      title_status: {
+        ru: 'Статус',
+        uk: 'Статус',
+        en: 'Status'
+      }
+    });
+
     function resetTemplates() {
       Lampa.Template.add('online', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 128\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <circle cx=\"64\" cy=\"64\" r=\"56\" stroke=\"white\" stroke-width=\"16\"/>\n                    <path d=\"M90.5 64.3827L50 87.7654L50 41L90.5 64.3827Z\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
       Lampa.Template.add('online_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0441 pastebin v1.48\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>\u041E\u043D\u043B\u0430\u0439\u043D</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"v1.52\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{title_online}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online', component); //то же самое
 
     resetTemplates();
     Lampa.Listener.follow('full', function (e) {
       if (e.type == 'complite') {
-        var btn = $(button);
+        var btn = $(Lampa.Lang.translate(button));
         btn.on('hover:enter', function () {
           resetTemplates();
           Lampa.Component.add('online', component);
           Lampa.Activity.push({
             url: '',
-            title: 'Онлайн',
+            title: Lampa.Lang.translate('title_online'),
             component: 'online',
             search: e.data.movie.title,
             search_one: e.data.movie.title,
@@ -2871,10 +2982,10 @@
     Lampa.Params.select('online_proxy_kinobase', '', '');
     Lampa.Params.select('online_proxy_collaps', '', '');
     Lampa.Params.select('online_proxy_cdnmovies', '', '');
-    Lampa.Template.add('settings_proxy', "<div>\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_all\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">\u041E\u0441\u043D\u043E\u0432\u043D\u043E\u0439 \u043F\u0440\u043E\u043A\u0441\u0438</div>\n        <div class=\"settings-param__value\"></div>\n        <div class=\"settings-param__descr\">\u0411\u0443\u0434\u0435\u0442 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u044C\u0441\u044F \u0434\u043B\u044F \u0432\u0441\u0435\u0445 \u0431\u0430\u043B\u0430\u043D\u0441\u0435\u0440\u043E\u0432</div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_videocdn\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">Videocdn</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_rezka\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">Rezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_kinobase\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_collaps\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">Collaps</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_cdnmovies\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: http://proxy.com\">\n        <div class=\"settings-param__name\">Cdnmovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n</div>");
+    Lampa.Template.add('settings_proxy', "<div>\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_all\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">#{online_proxy_title}</div>\n        <div class=\"settings-param__value\"></div>\n        <div class=\"settings-param__descr\">#{online_proxy_descr}</div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_videocdn\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">Videocdn</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_rezka\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">Rezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_kinobase\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_collaps\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">Collaps</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_cdnmovies\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">Cdnmovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n</div>");
     Lampa.Listener.follow('app', function (e) {
       if (e.type == 'ready' && Lampa.Settings.main && !Lampa.Settings.main().render().find('[data-component="proxy"]').length) {
-        var field = $("<div class=\"settings-folder selector\" data-component=\"proxy\">\n            <div class=\"settings-folder__icon\">\n                <svg height=\"46\" viewBox=\"0 0 42 46\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <rect x=\"1.5\" y=\"26.5\" width=\"39\" height=\"18\" rx=\"1.5\" stroke=\"white\" stroke-width=\"3\"/>\n                <circle cx=\"9.5\" cy=\"35.5\" r=\"3.5\" fill=\"white\"/>\n                <circle cx=\"26.5\" cy=\"35.5\" r=\"2.5\" fill=\"white\"/>\n                <circle cx=\"32.5\" cy=\"35.5\" r=\"2.5\" fill=\"white\"/>\n                <circle cx=\"21.5\" cy=\"5.5\" r=\"5.5\" fill=\"white\"/>\n                <rect x=\"31\" y=\"4\" width=\"11\" height=\"3\" rx=\"1.5\" fill=\"white\"/>\n                <rect y=\"4\" width=\"11\" height=\"3\" rx=\"1.5\" fill=\"white\"/>\n                <rect x=\"20\" y=\"14\" width=\"3\" height=\"7\" rx=\"1.5\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"settings-folder__name\">\u041F\u0440\u043E\u043A\u0441\u0438</div>\n        </div>");
+        var field = $(Lampa.Lang.translate("<div class=\"settings-folder selector\" data-component=\"proxy\">\n            <div class=\"settings-folder__icon\">\n                <svg height=\"46\" viewBox=\"0 0 42 46\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <rect x=\"1.5\" y=\"26.5\" width=\"39\" height=\"18\" rx=\"1.5\" stroke=\"white\" stroke-width=\"3\"/>\n                <circle cx=\"9.5\" cy=\"35.5\" r=\"3.5\" fill=\"white\"/>\n                <circle cx=\"26.5\" cy=\"35.5\" r=\"2.5\" fill=\"white\"/>\n                <circle cx=\"32.5\" cy=\"35.5\" r=\"2.5\" fill=\"white\"/>\n                <circle cx=\"21.5\" cy=\"5.5\" r=\"5.5\" fill=\"white\"/>\n                <rect x=\"31\" y=\"4\" width=\"11\" height=\"3\" rx=\"1.5\" fill=\"white\"/>\n                <rect y=\"4\" width=\"11\" height=\"3\" rx=\"1.5\" fill=\"white\"/>\n                <rect x=\"20\" y=\"14\" width=\"3\" height=\"7\" rx=\"1.5\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"settings-folder__name\">#{title_proxy}</div>\n        </div>"));
         Lampa.Settings.main().render().find('[data-component="more"]').after(field);
         Lampa.Settings.main().update();
       }
@@ -2885,7 +2996,7 @@
     var user_dev = '?user_dev_apk=1.1.3&user_dev_id=' + Lampa.Utils.uid(16) + '&user_dev_name=Xiaomi&user_dev_os=11&user_dev_vendor=Xiaomi&user_dev_token=';
     var ping_auth;
     Lampa.Params.select('filmix_token', '', '');
-    Lampa.Template.add('settings_filmix', "<div>\n    <div class=\"settings-param selector\" data-name=\"filmix_token\" data-type=\"input\" placeholder=\"\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: nxjekeb57385b..\">\n        <div class=\"settings-param__name\">\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0422\u041E\u041A\u0415\u041D \u043E\u0442 Filmix</div>\n        <div class=\"settings-param__value\"></div>\n        <div class=\"settings-param__descr\">\u0414\u043E\u0431\u0430\u0432\u044C\u0442\u0435 \u0422\u041E\u041A\u0415\u041D \u0434\u043B\u044F \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u044F \u043F\u043E\u0434\u043F\u0438\u0441\u043A\u0438</div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"filmix_add\" data-static=\"true\">\n        <div class=\"settings-param__name\">\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u043E \u043D\u0430 Filmix</div>\n    </div>\n</div>");
+    Lampa.Template.add('settings_filmix', "<div>\n    <div class=\"settings-param selector\" data-name=\"filmix_token\" data-type=\"input\" placeholder=\"#{filmix_param_placeholder}\">\n        <div class=\"settings-param__name\">#{filmix_param_add_title}</div>\n        <div class=\"settings-param__value\"></div>\n        <div class=\"settings-param__descr\">#{filmix_param_add_descr}</div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"filmix_add\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{filmix_param_add_device}</div>\n    </div>\n</div>");
     Lampa.Storage.listener.follow('change', function (e) {
       if (e.name == 'filmix_token') {
         if (e.value) checkPro(e.value);else {
@@ -2906,7 +3017,7 @@
         e.body.find('[data-name="filmix_add"]').unbind('hover:enter').on('hover:enter', function () {
           var user_code = '';
           var user_token = '';
-          var modal = $('<div><div class="broadcast__text">Введите его на странице https://filmix.ac/consoles в вашем авторизованном аккаунте!</div><div class="broadcast__device selector" style="text-align: center">Ожидаем код...</div><br><div class="broadcast__scan"><div></div></div></div></div>');
+          var modal = $('<div><div class="broadcast__text">' + Lampa.Lang.translate('filmix_modal_text') + '</div><div class="broadcast__device selector" style="text-align: center">' + Lampa.Lang.translate('filmix_modal_wait') + '...</div><br><div class="broadcast__scan"><div></div></div></div></div>');
           Lampa.Modal.open({
             title: '',
             html: modal,
@@ -2917,9 +3028,9 @@
             },
             onSelect: function onSelect() {
               Lampa.Utils.copyTextToClipboard(user_code, function () {
-                Lampa.Noty.show('Код скопирован в буфер обмена');
+                Lampa.Noty.show(Lampa.Lang.translate('filmix_copy_secuses'));
               }, function () {
-                Lampa.Noty.show('Ошибка при копировании');
+                Lampa.Noty.show(Lampa.Lang.translate('filmix_copy_fail'));
               });
             }
           });
@@ -2952,13 +3063,13 @@
 
     function showStatus() {
       var status = Lampa.Storage.get("filmix_status", '{}');
-      var info = 'Устройство не авторизовано';
+      var info = Lampa.Lang.translate('filmix_nodevice');
 
       if (status.login) {
-        if (status.is_pro) info = status.login + ' - PRO до - ' + status.pro_date;else if (status.is_pro_plus) info = status.login + ' - PRO_PLUS до - ' + status.pro_date;else info = status.login + ' - NO PRO';
+        if (status.is_pro) info = status.login + ' - PRO ' + Lampa.Lang.translate('filter_rating_to') + ' - ' + status.pro_date;else if (status.is_pro_plus) info = status.login + ' - PRO_PLUS ' + Lampa.Lang.translate('filter_rating_to') + ' - ' + status.pro_date;else info = status.login + ' - NO PRO';
       }
 
-      var field = $("\n        <div class=\"settings-param\" data-name=\"filmix_status\" data-static=\"true\">\n            <div class=\"settings-param__name\">\u0421\u0442\u0430\u0442\u0443\u0441</div>\n            <div class=\"settings-param__value\">".concat(info, "</div>\n        </div>"));
+      var field = $(Lampa.Lang.translate("\n        <div class=\"settings-param\" data-name=\"filmix_status\" data-static=\"true\">\n            <div class=\"settings-param__name\">#{title_status}</div>\n            <div class=\"settings-param__value\">".concat(info, "</div>\n        </div>")));
       $('.settings [data-name="filmix_status"]').remove();
       $('.settings [data-name="filmix_add"]').after(field);
     }
