@@ -1,4 +1,4 @@
-//26.06.2022 - Add lang
+//28.06.2022 - Add plug
 
 (function () {
     'use strict';
@@ -2842,6 +2842,18 @@
       };
     }
 
+    if (!Lampa.Lang) {
+      var lang_data = {};
+      Lampa.Lang = {
+        add: function add(data) {
+          lang_data = data;
+        },
+        translate: function translate(key) {
+          return lang_data[key] ? lang_data[key].ru : key;
+        }
+      };
+    }
+
     Lampa.Lang.add({
       online_nolink: {
         ru: 'Не удалось извлечь ссылку',
@@ -3094,3 +3106,4 @@
     }
 
 })();
+
