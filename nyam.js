@@ -187,6 +187,9 @@
         title: 'mofos.com',
         url: './ch/xdb?sites=mofos'
       }, {
+        title: 'dorcelclub.com',
+        url: './ch/xdb?sites=dorcelclub'
+      }, {
         title: 'evilangel.com',
         url: './ch/xdb?sites=evilangel'
       }, {
