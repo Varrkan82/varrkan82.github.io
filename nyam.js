@@ -11,6 +11,7 @@
       var items = [];
       var html = $('<div></div>');
       var body = $('<div class="category-full"></div>');
+      var wait_parse_video = false;
       var filter = new Lampa.Filter(object);
       var filter_sources = [];
 
@@ -50,6 +51,7 @@
       };
 
       this.clear = function () {
+        wait_parse_video = false;
         object.page = 1;
         last = false;
         items = [];
@@ -118,12 +120,33 @@
             if (Math.ceil(items.indexOf(card) / 7) >= maxrow) _this4.next();
           });
           card.on('hover:enter', function () {
-            var video = {
-              title: element.name,
-              url: element.video
-            };
-            Lampa.Player.play(video);
-            Lampa.Player.playlist([video]);
+            if (element.json) {
+              if (!wait_parse_video) {
+                network["native"](element.video + '&json=true', function (qualitys) {
+                  wait_parse_video = false;
+                  var video = {
+                    title: element.name,
+                    url: qualitys[Lampa.Arrays.getKeys(qualitys)[0]],
+                    quality: qualitys
+                  };
+                  Lampa.Player.play(video);
+                  Lampa.Player.playlist([video]);
+                }, function () {
+                  wait_parse_video = false;
+                  Lampa.Noty.show(Lampa.Lang.translate('torrent_parser_nofiles'));
+                });
+              }
+
+              wait_parse_video = true;
+            } else {
+              var video = {
+                title: element.name,
+                url: element.video,
+                quality: element.qualitys
+              };
+              Lampa.Player.play(video);
+              Lampa.Player.playlist([video]);
+            }
           });
           body.append(card);
           items.push(card);
