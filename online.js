@@ -1,4 +1,4 @@
-//28.06.2022 - Add plug
+//25.07.2022 - Subscribe to translation
 
 (function () {
     'use strict';
@@ -296,8 +296,8 @@
             movie.episodes.forEach(function (episode) {
               if (episode.season_num == choice.season + 1) {
                 episode.media.forEach(function (media) {
-                  if (filter_items.voice.indexOf(media.translation.smart_title) == -1) {
-                    filter_items.voice.push(media.translation.smart_title);
+                  if (filter_items.voice.indexOf(media.translation.shorter_title) == -1) {
+                    filter_items.voice.push(media.translation.shorter_title);
                     filter_items.voice_info.push({
                       id: media.translation.id
                     });
@@ -360,9 +360,16 @@
       function append(items) {
         component.reset();
         var viewed = Lampa.Storage.cache('online_view', 5000, []);
+        var last_episode = component.getLastEpisode(items);
         items.forEach(function (element) {
           if (element.season) element.title = 'S' + element.season + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + element.title;
           element.info = element.season ? ' / ' + filter_items.voice[choice.voice] : '';
+
+          if (element.season) {
+            element.translate_episode_end = last_episode;
+            element.translate_voice = filter_items.voice[choice.voice];
+          }
+
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
           var item = Lampa.Template.get('online', element);
@@ -420,6 +427,7 @@
             view: view,
             viewed: viewed,
             hash_file: hash_file,
+            element: element,
             file: function file(call) {
               call(getFile(element, element.quality));
             }
@@ -824,12 +832,19 @@
           });
         }
 
+        var last_episode = component.getLastEpisode(items);
         items.forEach(function (element) {
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
           var item = Lampa.Template.get('online', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title, element.voice.name].join('') : object.movie.original_title + element.voice.name);
           element.timeline = view;
+
+          if (element.season) {
+            element.translate_episode_end = last_episode;
+            element.translate_voice = element.voice.name;
+          }
+
           item.append(Lampa.Timeline.render(view));
 
           if (Lampa.Timeline.details) {
@@ -865,6 +880,7 @@
             view: view,
             viewed: viewed,
             hash_file: hash_file,
+            element: element,
             file: function file(call) {
               getStream(element, function (stream) {
                 call({
@@ -2209,9 +2225,16 @@
       function append(items) {
         component.reset();
         var viewed = Lampa.Storage.cache('online_view', 5000, []);
+        var last_episode = component.getLastEpisode(items);
         items.forEach(function (element) {
           if (element.season) element.title = 'S' + element.season + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + element.episode;
           element.info = element.season ? ' / ' + Lampa.Utils.shortText(filter_items.voice[choice.voice], 50) : '';
+
+          if (element.season) {
+            element.translate_episode_end = last_episode;
+            element.translate_voice = filter_items.voice[choice.voice];
+          }
+
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
           var item = Lampa.Template.get('online', element);
@@ -2269,6 +2292,7 @@
             view: view,
             viewed: viewed,
             hash_file: hash_file,
+            element: element,
             file: function file(call) {
               call(getFile(element, element.quality));
             }
@@ -2680,6 +2704,13 @@
               });
             }
 
+            if (Lampa.Account.working() && params.element && typeof params.element.season !== 'undefined' && Lampa.Account.subscribeToTranslation) {
+              menu.push({
+                title: Lampa.Lang.translate('online_voice_subscribe'),
+                subscribe: true
+              });
+            }
+
             Lampa.Select.show({
               title: Lampa.Lang.translate('title_action'),
               items: menu,
@@ -2748,6 +2779,19 @@
                     });
                   }
                 }
+
+                if (a.subscribe) {
+                  Lampa.Account.subscribeToTranslation({
+                    card: object.movie,
+                    season: params.element.season,
+                    episode: params.element.translate_episode_end,
+                    voice: params.element.translate_voice
+                  }, function () {
+                    Lampa.Noty.show(Lampa.Lang.translate('online_voice_success'));
+                  }, function () {
+                    Lampa.Noty.show(Lampa.Lang.translate('online_voice_error'));
+                  });
+                }
               }
             });
           }
@@ -2775,6 +2819,14 @@
 
       this.emptyForQuery = function (query) {
         this.empty(Lampa.Lang.translate('online_query_start') + ' (' + query + ') ' + Lampa.Lang.translate('online_query_end'));
+      };
+
+      this.getLastEpisode = function (items) {
+        var last_episode = 0;
+        items.forEach(function (e) {
+          if (typeof e.episode !== 'undefined') last_episode = Math.max(last_episode, parseInt(e.episode));
+        });
+        return last_episode;
       };
       /**
        * Начать навигацию по файлам
@@ -2954,6 +3006,21 @@
         ru: 'Статус',
         uk: 'Статус',
         en: 'Status'
+      },
+      online_voice_subscribe: {
+        ru: 'Подписаться на перевод',
+        uk: 'Підписатися на переклад',
+        en: 'Subscribe to translation'
+      },
+      online_voice_success: {
+        ru: 'Вы успешно подписались',
+        uk: 'Ви успішно підписалися',
+        en: 'You have successfully subscribed'
+      },
+      online_voice_error: {
+        ru: 'Возникла ошибка',
+        uk: 'Виникла помилка',
+        en: 'An error has occurred'
       }
     });
 
@@ -2962,7 +3029,7 @@
       Lampa.Template.add('online_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"v1.52\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{title_online}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online\" data-subtitle=\"v1.54\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 30.051 30.051\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M19.982,14.438l-6.24-4.536c-0.229-0.166-0.533-0.191-0.784-0.062c-0.253,0.128-0.411,0.388-0.411,0.669v9.069   c0,0.284,0.158,0.543,0.411,0.671c0.107,0.054,0.224,0.081,0.342,0.081c0.154,0,0.31-0.049,0.442-0.146l6.24-4.532   c0.197-0.145,0.312-0.369,0.312-0.607C20.295,14.803,20.177,14.58,19.982,14.438z\" fill=\"currentColor\"/>\n        <path d=\"M15.026,0.002C6.726,0.002,0,6.728,0,15.028c0,8.297,6.726,15.021,15.026,15.021c8.298,0,15.025-6.725,15.025-15.021   C30.052,6.728,23.324,0.002,15.026,0.002z M15.026,27.542c-6.912,0-12.516-5.601-12.516-12.514c0-6.91,5.604-12.518,12.516-12.518   c6.911,0,12.514,5.607,12.514,12.518C27.541,21.941,21.937,27.542,15.026,27.542z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{title_online}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online', component); //то же самое
 
@@ -3106,4 +3173,3 @@
     }
 
 })();
-
