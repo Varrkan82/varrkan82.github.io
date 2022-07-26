@@ -1,4 +1,4 @@
-//25.07.2022 - Subscribe to translation
+//26.07.2022 - Save last select voice name
 
 (function () {
     'use strict';
@@ -12,7 +12,8 @@
       var filter_items = {};
       var choice = {
         season: 0,
-        voice: 0
+        voice: 0,
+        voice_name: ''
       };
       /**
        * Начать поиск
@@ -54,7 +55,8 @@
         component.reset();
         choice = {
           season: 0,
-          voice: 0
+          voice: 0,
+          voice_name: ''
         };
         filter();
         append(filtred());
@@ -70,6 +72,7 @@
 
       this.filter = function (type, a, b) {
         choice[a.stype] = b.index;
+        if (a.stype == 'voice') choice.voice_name = filter_items.voice[b.index];
         component.reset();
         filter();
         append(filtred());
@@ -307,6 +310,14 @@
             });
           }
         });
+
+        if (choice.voice_name) {
+          var inx = filter_items.voice.indexOf(choice.voice_name);
+          if (inx == -1) choice.voice = 0;else if (inx !== choice.voice) {
+            choice.voice = inx;
+          }
+        }
+
         component.filter(filter_items, choice);
       }
       /**
@@ -447,7 +458,8 @@
       var filter_items = {};
       var choice = {
         season: 0,
-        voice: 0
+        voice: 0,
+        voice_name: ''
       };
       /**
        * Поиск
@@ -475,7 +487,8 @@
         component.reset();
         choice = {
           season: 0,
-          voice: 0
+          voice: 0,
+          voice_name: ''
         };
         component.loading(true);
         getFilm(select_id);
@@ -491,6 +504,7 @@
 
       this.filter = function (type, a, b) {
         choice[a.stype] = b.index;
+        if (a.stype == 'voice') choice.voice_name = filter_items.voice[b.index];
         component.reset();
         filter();
         component.loading(true);
@@ -601,6 +615,14 @@
             return v.name;
           }) : []
         };
+
+        if (choice.voice_name) {
+          var inx = filter_items.voice.indexOf(choice.voice_name);
+          if (inx == -1) choice.voice = 0;else if (inx !== choice.voice) {
+            choice.voice = inx;
+          }
+        }
+
         component.filter(filter_items, choice);
       }
 
@@ -1527,7 +1549,8 @@
       var filter_items = {};
       var choice = {
         season: 0,
-        voice: 0
+        voice: 0,
+        voice_name: ''
       };
       /**
        * Начать поиск
@@ -1583,7 +1606,8 @@
         component.reset();
         choice = {
           season: 0,
-          voice: 0
+          voice: 0,
+          voice_name: ''
         };
         filter();
         append(filtred());
@@ -1599,6 +1623,7 @@
 
       this.filter = function (type, a, b) {
         choice[a.stype] = b.index;
+        if (a.stype == 'voice') choice.voice_name = filter_items.voice[b.index];
         component.reset();
         filter();
         append(filtred());
@@ -1701,6 +1726,13 @@
             });
           });
           if (!filter_items.voice[choice.voice]) choice.voice = 0;
+        }
+
+        if (choice.voice_name) {
+          var inx = filter_items.voice.indexOf(choice.voice_name);
+          if (inx == -1) choice.voice = 0;else if (inx !== choice.voice) {
+            choice.voice = inx;
+          }
         }
 
         component.filter(filter_items, choice);
@@ -1842,7 +1874,8 @@
       var filter_items = {};
       var choice = {
         season: 0,
-        voice: 0
+        voice: 0,
+        voice_name: ''
       };
       var token = Lampa.Storage.get('filmix_token', '');
 
@@ -1940,7 +1973,8 @@
         component.reset();
         choice = {
           season: 0,
-          voice: 0
+          voice: 0,
+          voice_name: ''
         };
         extractData(results);
         filter();
@@ -1957,6 +1991,7 @@
 
       this.filter = function (type, a, b) {
         choice[a.stype] = b.index;
+        if (a.stype == 'voice') choice.voice_name = filter_items.voice[b.index];
         component.reset();
         extractData(results);
         filter();
@@ -2165,6 +2200,13 @@
                 id: d
               });
             }
+          }
+        }
+
+        if (choice.voice_name) {
+          var inx = filter_items.voice.indexOf(choice.voice_name);
+          if (inx == -1) choice.voice = 0;else if (inx !== choice.voice) {
+            choice.voice = inx;
           }
         }
 
