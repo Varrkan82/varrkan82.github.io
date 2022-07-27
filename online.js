@@ -1,4 +1,4 @@
-//26.07.2022 - Save last select voice name
+//27.07.2022 - Fix videocdn and add wait link
 
 (function () {
     'use strict';
@@ -9,6 +9,7 @@
       var results = [];
       var object = _object;
       var select_title = '';
+      var get_links_wait = false;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -23,6 +24,7 @@
       this.search = function (_object, data) {
         object = _object;
         select_title = object.movie.title;
+        get_links_wait = true;
         var url = component.proxy('videocdn') + 'http://cdn.svetacdn.in/api/';
         var itm = data[0];
         var type = itm.iframe_src.split('/').slice(-2)[0];
@@ -125,13 +127,15 @@
 
 
       function extractData(results) {
-        network.timeout(5000);
+        network.timeout(20000);
         var movie = results.slice(0, 1)[0];
         extract = {};
 
         if (movie) {
           var src = movie.iframe_src;
           network["native"]('http:' + src, function (raw) {
+            get_links_wait = false;
+            component.render().find('.broadcast__scan').remove();
             var math = raw.replace(/\n/g, '').match(/id="files" value="(.*?)"/);
 
             if (math) {
@@ -185,7 +189,10 @@
                 if (_ret === "continue") continue;
               }
             }
-          }, false, false, {
+          }, function () {
+            get_links_wait = false;
+            component.render().find('.broadcast__scan').remove();
+          }, false, {
             dataType: 'text'
           });
         }
@@ -299,7 +306,9 @@
             movie.episodes.forEach(function (episode) {
               if (episode.season_num == choice.season + 1) {
                 episode.media.forEach(function (media) {
-                  if (filter_items.voice.indexOf(media.translation.shorter_title) == -1) {
+                  if (!filter_items.voice_info.find(function (v) {
+                    return v.id == media.translation.id;
+                  })) {
                     filter_items.voice.push(media.translation.shorter_title);
                     filter_items.voice_info.push({
                       id: media.translation.id
@@ -370,6 +379,7 @@
 
       function append(items) {
         component.reset();
+        if (get_links_wait) component.append($('<div class="broadcast__scan"><div></div></div>'));
         var viewed = Lampa.Storage.cache('online_view', 5000, []);
         var last_episode = component.getLastEpisode(items);
         items.forEach(function (element) {
@@ -430,7 +440,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate(get_links_wait ? 'online_waitlink' : 'online_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -2953,6 +2963,11 @@
         ru: 'Не удалось извлечь ссылку',
         uk: 'Неможливо отримати посилання',
         en: 'Failed to fetch link'
+      },
+      online_waitlink: {
+        ru: 'Работаем над извлечением ссылки, подождите...',
+        uk: 'Працюємо над отриманням посилання, зачекайте...',
+        en: 'Working on extracting the link, please wait...'
       },
       online_balanser: {
         ru: 'Балансер',
