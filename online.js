@@ -345,7 +345,18 @@
           results.slice(0, 1).forEach(function (movie) {
             movie.episodes.forEach(function (episode) {
               if (episode.season_num == filter_data.season + 1) {
-                episode.media.forEach(function (media) {
+                episode.media.sort(function (a, b) {
+                  return b.max_quality - a.max_quality;
+                });
+                var medias = [];
+                episode.media.forEach(function (m) {
+                  if (!medias.find(function (a) {
+                    return a.translation.id == m.translation.id;
+                  })) {
+                    medias.push(m);
+                  }
+                });
+                medias.forEach(function (media) {
                   if (media.translation.id == filter_items.voice_info[filter_data.voice].id) {
                     filtred.push({
                       episode: parseInt(episode.num),
