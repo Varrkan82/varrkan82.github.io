@@ -323,7 +323,9 @@
         if (choice.voice_name) {
           var inx = filter_items.voice.indexOf(choice.voice_name);
           if (inx == -1) choice.voice = 0;else if (inx !== choice.voice) {
-            choice.voice = inx;
+            if (filter_items.voice.filter(function (v) {
+              return v == choice.voice_name;
+            }).length < 2) choice.voice = inx;
           }
         }
 
