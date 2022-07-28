@@ -1,4 +1,4 @@
-//27.07.2022 - Fix videocdn and add wait link
+//28.07.2022 - Fix videocdn
 
 (function () {
     'use strict';
@@ -14,7 +14,8 @@
       var choice = {
         season: 0,
         voice: 0,
-        voice_name: ''
+        voice_name: '',
+        voice_id: 0
       };
       /**
        * Начать поиск
@@ -58,7 +59,8 @@
         choice = {
           season: 0,
           voice: 0,
-          voice_name: ''
+          voice_name: '',
+          voice_id: 0
         };
         filter();
         append(filtred());
@@ -74,7 +76,12 @@
 
       this.filter = function (type, a, b) {
         choice[a.stype] = b.index;
-        if (a.stype == 'voice') choice.voice_name = filter_items.voice[b.index];
+
+        if (a.stype == 'voice') {
+          choice.voice_name = filter_items.voice[b.index];
+          choice.voice_id = filter_items.voice_info[b.index] && filter_items.voice_info[b.index].id;
+        }
+
         component.reset();
         filter();
         append(filtred());
@@ -321,11 +328,18 @@
         });
 
         if (choice.voice_name) {
-          var inx = filter_items.voice.indexOf(choice.voice_name);
+          var inx = -1;
+
+          if (choice.voice_id) {
+            var voice = filter_items.voice_info.find(function (v) {
+              return v.id == choice.voice_id;
+            });
+            if (voice) inx = filter_items.voice_info.indexOf(voice);
+          }
+
+          if (inx == -1) inx = filter_items.voice.indexOf(choice.voice_name);
           if (inx == -1) choice.voice = 0;else if (inx !== choice.voice) {
-            if (filter_items.voice.filter(function (v) {
-              return v == choice.voice_name;
-            }).length < 2) choice.voice = inx;
+            choice.voice = inx;
           }
         }
 
