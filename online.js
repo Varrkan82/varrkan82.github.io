@@ -1,4 +1,4 @@
-//30.07.2022 - Fix order in videocdn
+//31.07.2022 - Rezka playlist
 
 (function () {
     'use strict';
@@ -924,7 +924,32 @@
                 title: element.title
               };
               Lampa.Player.play(first);
-              Lampa.Player.playlist([first]);
+
+              if (element.season && Lampa.Platform.version) {
+                var playlist = [];
+                items.forEach(function (elem) {
+                  var cell = {
+                    url: function url(call) {
+                      getStream(elem, function (stream) {
+                        cell.url = stream;
+                        cell.quality = elem.qualitys;
+                        call();
+                      }, function () {
+                        cell.url = '';
+                        call();
+                      });
+                    },
+                    timeline: elem.timeline,
+                    title: elem.title
+                  };
+                  if (elem == element) cell.url = stream;
+                  playlist.push(cell);
+                });
+                Lampa.Player.playlist(playlist);
+              } else {
+                Lampa.Player.playlist([first]);
+              }
+
               if (element.subtitles && Lampa.Player.subtitles) Lampa.Player.subtitles(element.subtitles);
 
               if (viewed.indexOf(hash_file) == -1) {
