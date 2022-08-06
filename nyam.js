@@ -12,6 +12,7 @@
       var html = $('<div></div>');
       var body = $('<div class="category-full"></div>');
       var wait_parse_video = false;
+      var unic_id = Lampa.Storage.get('sisi_unic_id', '');
       var filter = new Lampa.Filter(object);
       var filter_sources = [];
 
@@ -19,6 +20,13 @@
         var _this = this;
 
         Lampa.Background.immediately('');
+
+        if (!unic_id) {
+          unic_id = Lampa.Utils.uid(8).toUpperCase();
+          Lampa.Storage.set('sisi_unic_id', unic_id);
+        }
+
+        filter.render().find('.torrent-filter').append('<div style="-webkit-align-self: center; -ms-flex-item-align: center; align-self: center; font-size: 1.2em;"><span>Ваш уникальный ID</span> <span style="background-color: rgba(255, 255, 255, 0.3); padding: 0 0.5em; border-radius: 0.2em; font-size: 1.1em;">' + unic_id + '</span></div>');
         network["native"]('./ch/', function (data) {
           filter_sources = data.channels;
           var last_url = Lampa.Storage.get('sisi_last_url', '');
@@ -64,6 +72,7 @@
         var _this2 = this;
 
         this.activity.loader(true);
+        if (url.indexOf('box_mac=') == -1) url = Lampa.Utils.addUrlComponent(url, 'box_mac=' + unic_id);
         network["native"](url, function (data) {
           Lampa.Storage.set('sisi_last_url', url);
 
