@@ -22,10 +22,11 @@
         Lampa.Background.immediately('');
 
         if (!unic_id) {
-          unic_id = Lampa.Utils.uid(8).toUpperCase();
+          unic_id = Lampa.Utils.uid(8);
           Lampa.Storage.set('sisi_unic_id', unic_id);
         }
 
+        unic_id = unic_id.toLowerCase();
         filter.render().find('.torrent-filter').append('<div style="-webkit-align-self: center; -ms-flex-item-align: center; align-self: center; font-size: 1.2em;"><span>Ваш ID</span> <span style="background-color: rgba(255, 255, 255, 0.3); padding: 0 0.5em; border-radius: 0.2em; font-size: 1.1em;">' + unic_id + '</span></div>');
         network["native"]('./ch/', function (data) {
           filter_sources = data.channels;
@@ -72,7 +73,7 @@
         var _this2 = this;
 
         this.activity.loader(true);
-        if (url.indexOf('box_mac=') == -1) url = Lampa.Utils.addUrlComponent(url, 'box_mac=' + unic_id);
+        if (url.indexOf('box_mac=') == -1) url = Lampa.Utils.addUrlComponent(url, 'box_mac=' + unic_id);else url = url.replace(/box_mac=[^&]+/, 'box_mac=' + unic_id);
         network["native"](url, function (data) {
           Lampa.Storage.set('sisi_last_url', url);
 
@@ -172,8 +173,7 @@
 
         filter.onSelect = function (type, a, b) {
           if (type == 'filter') {
-            _this5.load(b.playlist_url);
-
+            if (b) _this5.load(b.playlist_url);
             setTimeout(Lampa.Select.close, 10);
           }
         };
