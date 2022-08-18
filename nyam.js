@@ -26,7 +26,7 @@
           Lampa.Storage.set('sisi_unic_id', unic_id);
         }
 
-        filter.render().find('.torrent-filter').append('<div style="-webkit-align-self: center; -ms-flex-item-align: center; align-self: center; font-size: 1.2em;"><span>Ваш уникальный ID</span> <span style="background-color: rgba(255, 255, 255, 0.3); padding: 0 0.5em; border-radius: 0.2em; font-size: 1.1em;">' + unic_id + '</span></div>');
+        filter.render().find('.torrent-filter').append('<div style="-webkit-align-self: center; -ms-flex-item-align: center; align-self: center; font-size: 1.2em;"><span>MAC</span> <span style="background-color: rgba(255, 255, 255, 0.3); padding: 0 0.5em; border-radius: 0.2em; font-size: 1.1em;">' + unic_id + '</span></div>');
         network["native"]('./ch/', function (data) {
           filter_sources = data.channels;
           var last_url = Lampa.Storage.get('sisi_last_url', '');
@@ -39,7 +39,7 @@
 
           if (!filter_sources.find(function (a) {
             return a.selected;
-          })) filter_sources[1].selected = true;
+          })) filter_sources[0].selected = true;
 
           _this.build();
 
