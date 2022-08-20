@@ -1,4 +1,4 @@
-//13.08.2022 - Add proxy
+//20.08.2022 - Fix cdnmovies
 
 (function () {
     'use strict';
@@ -1609,7 +1609,7 @@
       var extract = {};
       var object = _object;
       var select_title = '';
-      var embed = component.proxy('cdnmovies') + 'https://cdnmovies.net/api/short';
+      var embed = component.proxy('cdnmovies') + 'https://cdnmovies.net/api/short/';
       var token = '02d56099082ad5ad586d7fe4e2493dd9';
       var filter_items = {};
       var choice = {
@@ -1622,28 +1622,42 @@
        * @param {Object} _object 
        */
 
-      this.search = function (_object, kp_id) {
+      this.search = function (_object, data) {
         var _this = this;
 
+        if (this.wait_similars) return this.find(data[0].iframe_src);
         object = _object;
         select_title = object.movie.title;
         var url = embed;
+        var itm = data[0];
+        var type = itm.iframe_src.split('/').slice(-2)[0];
+        if (type == 'movie') type = 'movies';
+        url += type;
         url = Lampa.Utils.addUrlComponent(url, 'token=' + token);
-        url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + kp_id);
-        network.silent(url, function (str) {
-          var iframe = String(str).match('"iframe_src":"(.*?)"');
+        url = Lampa.Utils.addUrlComponent(url, itm.imdb_id ? 'imdb_id=' + encodeURIComponent(itm.imdb_id) : 'title=' + encodeURIComponent(itm.title));
+        url = Lampa.Utils.addUrlComponent(url, 'field=' + encodeURIComponent('global'));
+        network.silent(url, function (json) {
+          var array_data = [];
 
-          if (iframe && iframe[1]) {
-            iframe = 'https:' + iframe[1].split('\\').join('');
+          for (var key in json.data) {
+            array_data.push(json.data[key]);
+          }
 
-            _this.find(iframe);
+          json.data = array_data;
+
+          if (json.data.length > 1) {
+            _this.wait_similars = true;
+            component.similars(json.data);
+            component.loading(false);
+          } else if (json.data.length == 1) {
+            _this.find(json.data[0].iframe_src);
           } else {
             component.emptyForQuery(select_title);
           }
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
-          dataType: 'text'
+          dataType: 'json'
         });
       };
 
@@ -2554,7 +2568,7 @@
             if (json.data.length == 1 || object.clarification) {
               _this2.extendChoice();
 
-              if (balanser == 'videocdn' || balanser == 'filmix') sources[balanser].search(object, json.data);else sources[balanser].search(object, json.data[0].kp_id || json.data[0].filmId, json.data);
+              if (balanser == 'videocdn' || balanser == 'filmix' || balanser == 'cdnmovies') sources[balanser].search(object, json.data);else sources[balanser].search(object, json.data[0].kp_id || json.data[0].filmId, json.data);
             } else {
               _this2.similars(json.data);
 
@@ -2647,7 +2661,7 @@
 
             _this3.extendChoice();
 
-            if (balanser == 'videocdn' || balanser == 'filmix') sources[balanser].search(object, [elem]);else sources[balanser].search(object, elem.kp_id || elem.filmId, [elem]);
+            if (balanser == 'videocdn' || balanser == 'filmix' || balanser == 'cdnmovies') sources[balanser].search(object, [elem]);else sources[balanser].search(object, elem.kp_id || elem.filmId, [elem]);
           });
 
           _this3.append(item);
