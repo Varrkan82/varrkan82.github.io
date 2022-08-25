@@ -1,4 +1,4 @@
-//20.08.2022 - Fix cdnmovies
+//25.08.2022 - Fix cdnmovies
 
 (function () {
     'use strict';
@@ -1663,7 +1663,7 @@
 
       this.find = function (url) {
         network.clear();
-        network.silent(url, function (json) {
+        network.silent('http:' + url, function (json) {
           parse(json);
           component.loading(false);
         }, function (a, c) {
