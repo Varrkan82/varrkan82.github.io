@@ -1,4 +1,4 @@
-//25.08.2022 - Fix cdnmovies
+//17.09.2022 - Fix background
 
 (function () {
     'use strict';
@@ -2490,7 +2490,6 @@
         var _this = this;
 
         this.activity.loader(true);
-        Lampa.Background.immediately(Lampa.Utils.cardImgBackground(object.movie));
 
         filter.onSearch = function (value) {
           Lampa.Activity.replace({
@@ -2964,6 +2963,7 @@
           if (object.movie.number_of_seasons && last_views.length) last = last_views.eq(0)[0];else last = scroll.render().find('.selector').eq(3)[0];
         }
 
+        Lampa.Background.immediately(Lampa.Utils.cardImgBackground(object.movie));
         Lampa.Controller.add('content', {
           toggle: function toggle() {
             Lampa.Controller.collectionSet(scroll.render(), files.render());
