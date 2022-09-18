@@ -1,4 +1,4 @@
-//17.09.2022 - Fix background
+//18.09.2022 - Fix filmix
 
 (function () {
     'use strict';
@@ -1965,7 +1965,7 @@
         };
       }
 
-      var dev_token = '?user_dev_apk=1.1.2&&user_dev_name=Xiaomi&user_dev_os=11&user_dev_token=' + token + '&user_dev_vendor=Xiaomi';
+      var dev_token = 'user_dev_apk=2.0.1&user_dev_id=&user_dev_name=Xiaomi&user_dev_os=11&user_dev_token=' + token + '&user_dev_vendor=Xiaomi';
       /**
        * Начать поиск
        * @param {Object} _object 
@@ -1980,8 +1980,9 @@
         var item = data[0];
         var year = parseInt((object.movie.release_date || object.movie.first_air_date || '0000').slice(0, 4));
         var orig = object.movie.original_title || object.movie.original_name;
-        var url = embed + 'suggest';
-        url = Lampa.Utils.addUrlComponent(url, 'word=' + encodeURIComponent(item.title));
+        var url = embed + 'search';
+        url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(item.title));
+        url = Lampa.Utils.addUrlComponent(url, dev_token);
         network.clear();
         network.silent(url, function (json) {
           var cards = json.filter(function (c) {
@@ -2016,7 +2017,7 @@
           window.filmix.is_max_qualitie = true;
           network.clear();
           network.timeout(10000);
-          network.silent(url + 'user_profile' + dev_token, function (found) {
+          network.silent(url + 'user_profile?' + dev_token, function (found) {
             if (found && found.user_data) {
               if (found.user_data.is_pro) window.filmix.max_qualitie = 1080;
               if (found.user_data.is_pro_plus) window.filmix.max_qualitie = 2160;
@@ -2029,7 +2030,7 @@
         function end_search(filmix_id) {
           network.clear();
           network.timeout(10000);
-          network.silent(window.filmix.is_max_qualitie ? url + 'post/' + filmix_id + dev_token : url + 'post/' + filmix_id, function (found) {
+          network.silent((window.filmix.is_max_qualitie ? url + 'post/' + filmix_id : url + 'post/' + filmix_id) + '?' + dev_token, function (found) {
             if (found && Object.keys(found).length) {
               success(found);
               component.loading(false);
