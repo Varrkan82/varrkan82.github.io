@@ -27,7 +27,12 @@
         }
 
         unic_id = unic_id.toLowerCase();
-        filter.render().find('.torrent-filter').append('<div style="-webkit-align-self: center; -ms-flex-item-align: center; align-self: center; font-size: 1.2em;"><span>Ваш ID</span> <span style="background-color: rgba(255, 255, 255, 0.3); padding: 0 0.5em; border-radius: 0.2em; font-size: 1.1em;">' + unic_id + '</span></div>');
+        var btn = filter.render().find('.torrent-filter');
+        var uid = $('<div style="-webkit-align-self: center; -ms-flex-item-align: center; align-self: center; font-size: 1.2em;"><span>Ваш ID</span> <span style="background-color: rgba(255, 255, 255, 0.3); padding: 0 0.5em; border-radius: 0.2em; font-size: 1.1em;">' + unic_id + '</span></div>');
+        if (btn.length) btn.append(uid);else {
+          filter.render().attr('style', 'padding: 0 1.2em 1.2em 1.2em; display: flex;').append(uid);
+          filter.render().find('.simple-button').addClass('sisi--filter-button');
+        }
         network["native"]('./ch/', function (data) {
           filter_sources = data.channels;
           var last_url = Lampa.Storage.get('sisi_last_url', '');
@@ -276,21 +281,52 @@
 
     function startPlugin() {
       window.plugin_sisi_ready = true;
+
+      if (!Lampa.Lang) {
+        var lang_data = {};
+        Lampa.Lang = {
+          add: function add(data) {
+            lang_data = data;
+          },
+          translate: function translate(key) {
+            return lang_data[key] ? lang_data[key].ru : key;
+          }
+        };
+        Lampa.Lang.add({
+          torrent_parser_nofiles: {
+            ru: 'Не удалось извлечь подходящие файлы'
+          },
+          settings_rest_source: {
+            ru: 'Источник'
+          },
+          title_filter: {
+            ru: 'Фильтр'
+          }
+        });
+        Lampa.Template.add('sisi_style', "\n            <style>\n                .sisi--filter-button{\n                    background-color: #393a44;\n                    padding: .7em 1em;\n                    font-size: 1.1em;\n                    -webkit-border-radius: .2em;\n                    -moz-border-radius: .2em;\n                    border-radius: .2em;\n                    font-weight: 300;\n                    margin-right: 1em;\n                    display:-webkit-box;\n                    display:-webkit-flex;\n                    display:-moz-box;\n                    display:-ms-flexbox;\n                    display:flex;\n                }\n                .sisi--filter-button > div{\n                    margin-left: .5em;\n                }\n                .sisi--filter-button.focus{\n                    background-color: #d81f26;\n                }\n            </style>\n        ");
+        $('body').append(Lampa.Template.get('sisi_style', {}, true));
+      }
+
       Lampa.Component.add('sisi', Sisi);
-      Lampa.Listener.follow('app', function (e) {
-        if (e.type == 'ready') {
-          var button = $("<li class=\"menu__item selector\" data-action=\"sisi\">\n                <div class=\"menu__ico\">\n                    <svg width=\"200\" height=\"243\" viewBox=\"0 0 200 243\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M187.714 130.727C206.862 90.1515 158.991 64.2019 100.983 64.2019C42.9759 64.2019 -4.33044 91.5669 10.875 130.727C26.0805 169.888 63.2501 235.469 100.983 234.997C138.716 234.526 168.566 171.303 187.714 130.727Z\" stroke=\"white\" stroke-width=\"15\"/><path d=\"M102.11 62.3146C109.995 39.6677 127.46 28.816 169.692 24.0979C172.514 56.1811 135.338 64.2018 102.11 62.3146Z\" stroke=\"white\" stroke-width=\"15\"/><path d=\"M90.8467 62.7863C90.2285 34.5178 66.0667 25.0419 31.7127 33.063C28.8904 65.1461 68.8826 62.7863 90.8467 62.7863Z\" stroke=\"white\" stroke-width=\"15\"/><path d=\"M100.421 58.5402C115.627 39.6677 127.447 13.7181 85.2149 9C82.3926 41.0832 83.5258 35.4214 100.421 58.5402Z\" stroke=\"white\" stroke-width=\"15\"/><rect x=\"39.0341\" y=\"98.644\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/><rect x=\"90.8467\" y=\"92.0388\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/><rect x=\"140.407\" y=\"98.644\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/><rect x=\"116.753\" y=\"139.22\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/><rect x=\"64.9404\" y=\"139.22\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/><rect x=\"93.0994\" y=\"176.021\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/></svg>\n                </div>\n                <div class=\"menu__text\">\u041A\u043B\u0443\u0431\u043D\u0438\u0447\u043A\u0430</div>\n            </li>");
-          button.on('hover:enter', function () {
-            Lampa.Activity.push({
-              url: '',
-              title: 'Клубничка',
-              component: 'sisi',
-              page: 1
-            });
+
+      function add() {
+        var button = $("<li class=\"menu__item selector\" data-action=\"sisi\">\n            <div class=\"menu__ico\">\n                <svg width=\"200\" height=\"243\" viewBox=\"0 0 200 243\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M187.714 130.727C206.862 90.1515 158.991 64.2019 100.983 64.2019C42.9759 64.2019 -4.33044 91.5669 10.875 130.727C26.0805 169.888 63.2501 235.469 100.983 234.997C138.716 234.526 168.566 171.303 187.714 130.727Z\" stroke=\"white\" stroke-width=\"15\"/><path d=\"M102.11 62.3146C109.995 39.6677 127.46 28.816 169.692 24.0979C172.514 56.1811 135.338 64.2018 102.11 62.3146Z\" stroke=\"white\" stroke-width=\"15\"/><path d=\"M90.8467 62.7863C90.2285 34.5178 66.0667 25.0419 31.7127 33.063C28.8904 65.1461 68.8826 62.7863 90.8467 62.7863Z\" stroke=\"white\" stroke-width=\"15\"/><path d=\"M100.421 58.5402C115.627 39.6677 127.447 13.7181 85.2149 9C82.3926 41.0832 83.5258 35.4214 100.421 58.5402Z\" stroke=\"white\" stroke-width=\"15\"/><rect x=\"39.0341\" y=\"98.644\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/><rect x=\"90.8467\" y=\"92.0388\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/><rect x=\"140.407\" y=\"98.644\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/><rect x=\"116.753\" y=\"139.22\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/><rect x=\"64.9404\" y=\"139.22\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/><rect x=\"93.0994\" y=\"176.021\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"white\"/></svg>\n            </div>\n            <div class=\"menu__text\">\u041A\u043B\u0443\u0431\u043D\u0438\u0447\u043A\u0430</div>\n        </li>");
+        button.on('hover:enter', function () {
+          Lampa.Activity.push({
+            url: '',
+            title: 'Клубничка',
+            component: 'sisi',
+            page: 1
           });
-          $('.menu .menu__list').eq(0).append(button);
-        }
-      });
+        });
+        $('.menu .menu__list').eq(0).append(button);
+      }
+
+      if (window.appready) add();else {
+        Lampa.Listener.follow('app', function (e) {
+          if (e.type == 'ready') add();
+        });
+      }
     }
 
     if (!window.plugin_sisi_ready) startPlugin();
