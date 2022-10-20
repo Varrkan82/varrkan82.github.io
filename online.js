@@ -1,4 +1,4 @@
-//18.09.2022 - Fix filmix
+//20.10.2022 - Remove cdnmovies and fix search
 
 (function () {
     'use strict';
@@ -1630,35 +1630,40 @@
         select_title = object.movie.title;
         var url = embed;
         var itm = data[0];
-        var type = itm.iframe_src.split('/').slice(-2)[0];
-        if (type == 'movie') type = 'movies';
-        url += type;
-        url = Lampa.Utils.addUrlComponent(url, 'token=' + token);
-        url = Lampa.Utils.addUrlComponent(url, itm.imdb_id ? 'imdb_id=' + encodeURIComponent(itm.imdb_id) : 'title=' + encodeURIComponent(itm.title));
-        url = Lampa.Utils.addUrlComponent(url, 'field=' + encodeURIComponent('global'));
-        network.silent(url, function (json) {
-          var array_data = [];
 
-          for (var key in json.data) {
-            array_data.push(json.data[key]);
-          }
+        if (itm.iframe_src) {
+          var type = itm.iframe_src.split('/').slice(-2)[0];
+          if (type == 'movie') type = 'movies';
+          url += type;
+          url = Lampa.Utils.addUrlComponent(url, 'token=' + token);
+          url = Lampa.Utils.addUrlComponent(url, itm.imdb_id ? 'imdb_id=' + encodeURIComponent(itm.imdb_id) : 'title=' + encodeURIComponent(itm.title));
+          url = Lampa.Utils.addUrlComponent(url, 'field=' + encodeURIComponent('global'));
+          network.silent(url, function (json) {
+            var array_data = [];
 
-          json.data = array_data;
+            for (var key in json.data) {
+              array_data.push(json.data[key]);
+            }
 
-          if (json.data.length > 1) {
-            _this.wait_similars = true;
-            component.similars(json.data);
-            component.loading(false);
-          } else if (json.data.length == 1) {
-            _this.find(json.data[0].iframe_src);
-          } else {
-            component.emptyForQuery(select_title);
-          }
-        }, function (a, c) {
-          component.empty(network.errorDecode(a, c));
-        }, false, {
-          dataType: 'json'
-        });
+            json.data = array_data;
+
+            if (json.data.length > 1) {
+              _this.wait_similars = true;
+              component.similars(json.data);
+              component.loading(false);
+            } else if (json.data.length == 1) {
+              _this.find(json.data[0].iframe_src);
+            } else {
+              component.emptyForQuery(select_title);
+            }
+          }, function (a, c) {
+            component.empty(network.errorDecode(a, c));
+          }, false, {
+            dataType: 'json'
+          });
+        } else {
+          component.emptyForQuery(select_title);
+        }
       };
 
       this.find = function (url) {
@@ -2468,7 +2473,9 @@
         voice: Lampa.Lang.translate('torrent_parser_voice'),
         source: Lampa.Lang.translate('settings_rest_source')
       };
-      var filter_sources = ['videocdn', 'rezka', 'kinobase', 'collaps', 'cdnmovies', 'filmix']; // шаловливые ручки
+      var filter_sources = ['videocdn', 'rezka', 'kinobase', 'collaps', 'filmix'];
+      var ignore_sources = ['filmix', 'kinobase'];
+      var kiposk_sources = ['rezka', 'collaps']; // шаловливые ручки
 
       if (filter_sources.indexOf(balanser) == -1) {
         balanser = 'videocdn';
@@ -2609,7 +2616,15 @@
         network.clear();
         network.timeout(1000 * 15);
 
-        if (object.movie.imdb_id) {
+        if (ignore_sources.indexOf(balanser) >= 0) {
+          display({
+            data: [{
+              title: object.movie.title || object.movie.name
+            }]
+          });
+        } else if (object.movie.kinopoisk_id && kiposk_sources.indexOf(balanser) >= 0) {
+          sources[balanser].search(object, object.movie.kinopoisk_id);
+        } else if (object.movie.imdb_id) {
           letgo(object.movie.imdb_id);
         } else if (object.movie.source == 'tmdb' || object.movie.source == 'cub') {
           var tmdburl = (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru';
@@ -3215,13 +3230,20 @@
     Lampa.Params.select('online_proxy_collaps', '', '');
     Lampa.Params.select('online_proxy_cdnmovies', '', '');
     Lampa.Template.add('settings_proxy', "<div>\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_all\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">#{online_proxy_title}</div>\n        <div class=\"settings-param__value\"></div>\n        <div class=\"settings-param__descr\">#{online_proxy_descr}</div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_videocdn\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">Videocdn</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_rezka\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">Rezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_kinobase\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_collaps\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">Collaps</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n\n    <div class=\"settings-param selector\" data-type=\"input\" data-name=\"online_proxy_cdnmovies\" placeholder=\"#{online_proxy_placeholder}\">\n        <div class=\"settings-param__name\">Cdnmovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n</div>");
-    Lampa.Listener.follow('app', function (e) {
-      if (e.type == 'ready' && Lampa.Settings.main && !Lampa.Settings.main().render().find('[data-component="proxy"]').length) {
+
+    function addSettingsProxy() {
+      if (Lampa.Settings.main && !Lampa.Settings.main().render().find('[data-component="proxy"]').length) {
         var field = $(Lampa.Lang.translate("<div class=\"settings-folder selector\" data-component=\"proxy\">\n            <div class=\"settings-folder__icon\">\n                <svg height=\"46\" viewBox=\"0 0 42 46\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <rect x=\"1.5\" y=\"26.5\" width=\"39\" height=\"18\" rx=\"1.5\" stroke=\"white\" stroke-width=\"3\"/>\n                <circle cx=\"9.5\" cy=\"35.5\" r=\"3.5\" fill=\"white\"/>\n                <circle cx=\"26.5\" cy=\"35.5\" r=\"2.5\" fill=\"white\"/>\n                <circle cx=\"32.5\" cy=\"35.5\" r=\"2.5\" fill=\"white\"/>\n                <circle cx=\"21.5\" cy=\"5.5\" r=\"5.5\" fill=\"white\"/>\n                <rect x=\"31\" y=\"4\" width=\"11\" height=\"3\" rx=\"1.5\" fill=\"white\"/>\n                <rect y=\"4\" width=\"11\" height=\"3\" rx=\"1.5\" fill=\"white\"/>\n                <rect x=\"20\" y=\"14\" width=\"3\" height=\"7\" rx=\"1.5\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"settings-folder__name\">#{title_proxy}</div>\n        </div>"));
         Lampa.Settings.main().render().find('[data-component="more"]').after(field);
         Lampa.Settings.main().update();
       }
-    }); ///////FILMIX/////////
+    }
+
+    if (window.appready) addSettingsProxy();else {
+      Lampa.Listener.follow('app', function (e) {
+        if (e.type == 'ready') addSettingsProxy();
+      });
+    } ///////FILMIX/////////
 
     var network = new Lampa.Reguest();
     var api_url = 'http://filmixapp.cyou/api/v2/';
@@ -3237,13 +3259,20 @@
         }
       }
     });
-    Lampa.Listener.follow('app', function (e) {
-      if (e.type == 'ready' && Lampa.Settings.main && !Lampa.Settings.main().render().find('[data-component="filmix"]').length) {
+
+    function addSettingsFilmix() {
+      if (Lampa.Settings.main && !Lampa.Settings.main().render().find('[data-component="filmix"]').length) {
         var field = $("<div class=\"settings-folder selector\" data-component=\"filmix\">\n            <div class=\"settings-folder__icon\">\n                <svg height=\"57\" viewBox=\"0 0 58 57\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <path d=\"M20 20.3735V45H26.8281V34.1262H36.724V26.9806H26.8281V24.3916C26.8281 21.5955 28.9062 19.835 31.1823 19.835H39V13H26.8281C23.6615 13 20 15.4854 20 20.3735Z\" fill=\"white\"/>\n                <rect x=\"2\" y=\"2\" width=\"54\" height=\"53\" rx=\"5\" stroke=\"white\" stroke-width=\"4\"/>\n                </svg>\n            </div>\n            <div class=\"settings-folder__name\">Filmix</div>\n        </div>");
         Lampa.Settings.main().render().find('[data-component="more"]').after(field);
         Lampa.Settings.main().update();
       }
-    });
+    }
+
+    if (window.appready) addSettingsFilmix();else {
+      Lampa.Listener.follow('app', function (e) {
+        if (e.type == 'ready') addSettingsFilmix();
+      });
+    }
     Lampa.Settings.listener.follow('open', function (e) {
       if (e.name == 'filmix') {
         e.body.find('[data-name="filmix_add"]').unbind('hover:enter').on('hover:enter', function () {
