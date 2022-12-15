@@ -1,9 +1,9 @@
 name: Update NoAnime on schedule
 # on: workflow_dispatch
 on:
-  schedule:
+  #schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '15 */1 * * *'
+  #  - cron:  '15 */1 * * *'
 jobs:
   resources:
     name: Update resources
