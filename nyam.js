@@ -14,9 +14,9 @@
     function modal() {
       var id = Lampa.Storage.get('sisi_unic_id', '').toLowerCase();
       var controller = Lampa.Controller.enabled().name;
-      var content = "<div class=\"about\">\n        <div>\u042D\u0442\u043E \u0432\u0438\u0434\u0435\u043E \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E \u0441 ViP \u043F\u043E\u0434\u043F\u0438\u0441\u043A\u043E\u0439. \u0414\u043B\u044F \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u044F ViP \u043F\u043E\u0434\u043F\u0438\u0441\u043A\u0438, \u043F\u0435\u0440\u0435\u0439\u0434\u0438\u0442\u0435 \u043D\u0430 \u0441\u0430\u0439\u0442 \u043A\u043E\u0442\u043E\u0440\u044B\u0439 \u0443\u043A\u0430\u0437\u0430\u043D \u043D\u0438\u0436\u0435 \u0438 \u0443\u043A\u0430\u0436\u0438\u0442\u0435 \u0412\u0430\u0448 ID</div>\n        <div class=\"about__contacts\">\n            <div>\n                <small>\u0421\u0430\u0439\u0442</small><br>\n                ".concat(window.plugin_sisi_vip_site, "\n            </div>\n\n            <div>\n                <small>\u0412\u0430\u0448 ID</small><br>\n                ").concat(id, "\n            </div>\n        </div>\n    </div>");
+      var content = "<div class=\"about\">\n        <div>\u042D\u0442\u043E \u0432\u0438\u0434\u0435\u043E \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E \u0441 VIP \u043F\u043E\u0434\u043F\u0438\u0441\u043A\u043E\u0439. \u0414\u043B\u044F \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u044F VIP \u043F\u043E\u0434\u043F\u0438\u0441\u043A\u0438, \u043F\u0435\u0440\u0435\u0439\u0434\u0438\u0442\u0435 \u043D\u0430 \u0441\u0430\u0439\u0442 \u043A\u043E\u0442\u043E\u0440\u044B\u0439 \u0443\u043A\u0430\u0437\u0430\u043D \u043D\u0438\u0436\u0435 \u0438 \u0443\u043A\u0430\u0436\u0438\u0442\u0435 \u0432\u0430\u0448 ID</div>\n        <div class=\"about__contacts\">\n            <div>\n                <small>\u0421\u0430\u0439\u0442</small><br>\n                ".concat(window.plugin_sisi_vip_site, "\n            </div>\n\n            <div>\n                <small>\u0412\u0430\u0448 ID</small><br>\n                ").concat(id, "\n            </div>\n        </div>\n    </div>");
       Lampa.Modal.open({
-        title: 'ViP Контент',
+        title: 'VIP Контент',
         html: $(content),
         size: 'medium',
         onBack: function onBack() {
@@ -119,8 +119,12 @@
       this.menu = function (success, error) {
         if (menu) return success(menu);
         network.silent(this.account(window.plugin_sisi_localhost), function (data) {
-          menu = data.channels;
-          success(menu);
+          if (data.channels) {
+            menu = data.channels;
+            success(menu);
+          } else {
+            error(data.msg);
+          }
         }, error);
       };
 
@@ -142,7 +146,13 @@
 
       this.account = function (u) {
         var unic_id = Lampa.Storage.get('sisi_unic_id', '');
+        var email = Lampa.Storage.get('account', {}).email;
         if (u.indexOf('box_mac=') == -1) u = Lampa.Utils.addUrlComponent(u, 'box_mac=' + unic_id);else u = u.replace(/box_mac=[^&]+/, 'box_mac=' + unic_id);
+
+        if (email) {
+          if (u.indexOf('account_email=') == -1) u = Lampa.Utils.addUrlComponent(u, 'account_email=' + encodeURIComponent(email));else u = u.replace(/account_email=[^&]+/, 'account_email=' + encodeURIComponent(email));
+        }
+
         return u;
       };
 
@@ -209,6 +219,20 @@
         this.activity.loader(true);
         Api$1.main(object, this.build.bind(this), this.empty.bind(this));
         return this.render();
+      };
+
+      comp.empty = function (er) {
+        var _this = this;
+
+        var empty = new Lampa.Empty({
+          descr: typeof er == 'string' ? er : Lampa.Lang.translate('empty_text_two')
+        });
+        Lampa.Activity.all().forEach(function (active) {
+          if (_this.activity == active.activity) active.activity.render().find('.activity__body > div')[0].appendChild(empty.render(true));
+        });
+        this.start = empty.start;
+        this.activity.loader(false);
+        this.activity.toggle();
       };
 
       comp.onMore = function (data) {
@@ -355,12 +379,39 @@
       function add() {
         var button = $("<li class=\"menu__item selector\">\n            <div class=\"menu__ico\">\n                <svg width=\"200\" height=\"243\" viewBox=\"0 0 200 243\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M187.714 130.727C206.862 90.1515 158.991 64.2019 100.983 64.2019C42.9759 64.2019 -4.33044 91.5669 10.875 130.727C26.0805 169.888 63.2501 235.469 100.983 234.997C138.716 234.526 168.566 171.303 187.714 130.727Z\" stroke=\"currentColor\" stroke-width=\"15\"/><path d=\"M102.11 62.3146C109.995 39.6677 127.46 28.816 169.692 24.0979C172.514 56.1811 135.338 64.2018 102.11 62.3146Z\" stroke=\"currentColor\" stroke-width=\"15\"/><path d=\"M90.8467 62.7863C90.2285 34.5178 66.0667 25.0419 31.7127 33.063C28.8904 65.1461 68.8826 62.7863 90.8467 62.7863Z\" stroke=\"currentColor\" stroke-width=\"15\"/><path d=\"M100.421 58.5402C115.627 39.6677 127.447 13.7181 85.2149 9C82.3926 41.0832 83.5258 35.4214 100.421 58.5402Z\" stroke=\"currentColor\" stroke-width=\"15\"/><rect x=\"39.0341\" y=\"98.644\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"currentColor\"/><rect x=\"90.8467\" y=\"92.0388\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"currentColor\"/><rect x=\"140.407\" y=\"98.644\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"currentColor\"/><rect x=\"116.753\" y=\"139.22\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"currentColor\"/><rect x=\"64.9404\" y=\"139.22\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"currentColor\"/><rect x=\"93.0994\" y=\"176.021\" width=\"19.1481\" height=\"30.1959\" rx=\"9.57407\" fill=\"currentColor\"/></svg>\n            </div>\n            <div class=\"menu__text\">\u041A\u043B\u0443\u0431\u043D\u0438\u0447\u043A\u0430</div>\n        </li>");
         button.on('hover:enter', function () {
-          Lampa.Activity.push({
-            url: '',
-            title: 'Клубничка',
-            component: 'sisi',
-            page: 1
-          });
+          Api$1.menu(function (data) {
+            var items = [{
+              title: 'Все'
+            }];
+            data.forEach(function (a) {
+              a.title = Utils.sourceTitle(a.title);
+            });
+            items = items.concat(data);
+            Lampa.Select.show({
+              title: 'Сайты',
+              items: items,
+              onSelect: function onSelect(a) {
+                if (a.playlist_url) {
+                  Lampa.Activity.push({
+                    url: a.playlist_url,
+                    title: a.title,
+                    component: 'sisi_view',
+                    page: 1
+                  });
+                } else {
+                  Lampa.Activity.push({
+                    url: '',
+                    title: 'Клубничка',
+                    component: 'sisi',
+                    page: 1
+                  });
+                }
+              },
+              onBack: function onBack() {
+                Lampa.Controller.toggle('menu');
+              }
+            });
+          }, function () {});
         });
         $('.menu .menu__list').eq(0).append(button);
         addFilter(); //addSettings()
